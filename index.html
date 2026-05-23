@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>Blackjack</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="frame">
+    <div class="frame-ring"></div>
+
+    <section class="screen screen-home" id="screen-home">
+      <header class="home-header">
+        <h1 class="app-title">BLACKJACK</h1>
+        <p class="app-subtitle">Learn the game. Master the count.</p>
+      </header>
+
+      <nav class="mode-list">
+        <button class="mode-btn" data-mode="1">
+          <span class="mode-num">01</span>
+          <span class="mode-title">Learn to Play</span>
+          <span class="mode-desc">Basic blackjack tutorial with coached feedback.</span>
+        </button>
+
+        <button class="mode-btn" data-mode="2">
+          <span class="mode-num">02</span>
+          <span class="mode-title">Learn to Count</span>
+          <span class="mode-desc">Hi-Lo card counting tutorial and practice drills.</span>
+        </button>
+
+        <button class="mode-btn" data-mode="3">
+          <span class="mode-num">03</span>
+          <span class="mode-title">Test Yourself</span>
+          <span class="mode-desc">Free play with chips and a running bankroll.</span>
+        </button>
+      </nav>
+    </section>
+
+    <section class="screen screen-game hidden" id="screen-game">
+      <button class="back-btn" id="back-btn" aria-label="Back to home">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 18l-6-6 6-6"/>
+        </svg>
+      </button>
+      <div class="game-body">
+        <h2 class="game-title" id="game-title">Mode</h2>
+        <p class="game-placeholder">Coming soon</p>
+      </div>
+    </section>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
