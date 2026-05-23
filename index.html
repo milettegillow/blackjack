@@ -6,38 +6,64 @@
   <title>Blackjack</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600;1,700;1,800&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="frame">
-    <div class="frame-ring"></div>
-
+  <main class="stage">
     <section class="screen screen-home" id="screen-home">
-      <header class="home-header">
-        <h1 class="app-title">BLACKJACK</h1>
-        <p class="app-subtitle">Learn the game. Master the count.</p>
-      </header>
+      <div class="home-col">
+        <header class="home-header">
+          <h1 class="app-title">Blackjack</h1>
+          <p class="app-subtitle">Learn the game. Master the count.</p>
+        </header>
 
-      <nav class="mode-list">
-        <button class="mode-btn" data-mode="1">
-          <span class="mode-num">01</span>
-          <span class="mode-title">Learn to Play</span>
-          <span class="mode-desc">Basic blackjack tutorial with coached feedback.</span>
-        </button>
+        <div class="deck" aria-hidden="true">
+          <div class="card-back" style="--i:0"></div>
+          <div class="card-back" style="--i:1"></div>
+          <div class="card-back" style="--i:2"></div>
+          <div class="card-back" style="--i:3"></div>
+          <div class="card-back" style="--i:4"></div>
+          <div class="card-back card-back--top" style="--i:5">
+            <span class="card-back-mono">BJ</span>
+          </div>
+        </div>
 
-        <button class="mode-btn" data-mode="2">
-          <span class="mode-num">02</span>
-          <span class="mode-title">Learn to Count</span>
-          <span class="mode-desc">Hi-Lo card counting tutorial and practice drills.</span>
-        </button>
+        <nav class="mode-list">
+          <button class="mode-btn" data-mode="1">
+            <span class="mini-card mini-card--black">
+              <span class="mini-card-corner">
+                <span class="mini-card-rank">A</span>
+                <span class="mini-card-suit">&clubs;</span>
+              </span>
+              <span class="mini-card-center">&clubs;</span>
+            </span>
+            <span class="mode-title">Learn to Play</span>
+          </button>
 
-        <button class="mode-btn" data-mode="3">
-          <span class="mode-num">03</span>
-          <span class="mode-title">Test Yourself</span>
-          <span class="mode-desc">Free play with chips and a running bankroll.</span>
-        </button>
-      </nav>
+          <button class="mode-btn" data-mode="2">
+            <span class="mini-card mini-card--red">
+              <span class="mini-card-corner">
+                <span class="mini-card-rank">2</span>
+                <span class="mini-card-suit">&hearts;</span>
+              </span>
+              <span class="mini-card-center">&hearts;</span>
+            </span>
+            <span class="mode-title">Learn to Count</span>
+          </button>
+
+          <button class="mode-btn" data-mode="3">
+            <span class="mini-card mini-card--black">
+              <span class="mini-card-corner">
+                <span class="mini-card-rank">3</span>
+                <span class="mini-card-suit">&spades;</span>
+              </span>
+              <span class="mini-card-center">&spades;</span>
+            </span>
+            <span class="mode-title">Test Yourself</span>
+          </button>
+        </nav>
+      </div>
     </section>
 
     <section class="screen screen-game hidden" id="screen-game">
@@ -51,7 +77,7 @@
         <p class="game-placeholder">Coming soon</p>
       </div>
     </section>
-  </div>
+  </main>
 
   <script src="main.js"></script>
 </body>
