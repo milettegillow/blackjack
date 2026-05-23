@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 167.0869 242.6670" width="167.0869pt" height="242.6670pt">
+  <defs>
+    <pattern id="weave" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="10" height="10" fill="#7a1729"/>
+      <path d="M0 0 L10 0 M0 5 L10 5" stroke="#5a0f1d" stroke-width="1.2"/>
+      <path d="M0 2.5 L10 2.5 M0 7.5 L10 7.5" stroke="#3d0712" stroke-width="0.6" opacity="0.7"/>
+    </pattern>
+    <linearGradient id="goldStroke" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f4d77a"/>
+      <stop offset="50%" stop-color="#d4af37"/>
+      <stop offset="100%" stop-color="#b8862b"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="167.0869" height="242.6670" rx="10" ry="10" fill="#f7f2e8"/>
+  <rect x="4" y="4" width="159.0869" height="234.6670" rx="7" ry="7" fill="url(#weave)"/>
+  <rect x="9" y="9" width="149.0869" height="224.6670" rx="5" ry="5" fill="none" stroke="url(#goldStroke)" stroke-width="1.2"/>
+  <rect x="13" y="13" width="141.0869" height="216.6670" rx="3" ry="3" fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="0.6"/>
+</svg>
