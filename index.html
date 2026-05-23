@@ -46,17 +46,101 @@
       </div>
     </section>
 
-    <section class="screen screen-game hidden" id="screen-game">
-      <button class="back-btn" id="back-btn" aria-label="Back to home">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M15 18l-6-6 6-6"/>
-        </svg>
-      </button>
-      <div class="game-body">
-        <h2 class="game-title" id="game-title">Mode</h2>
-        <p class="game-placeholder">Coming soon</p>
+    <div class="game-screen hidden" id="gameScreen">
+
+      <div class="topbar">
+        <button class="icon-btn" id="backBtn" aria-label="Back">&larr;</button>
+        <div class="top-mode gold-text" id="topMode">Mode Name</div>
+        <button class="icon-btn" id="infoBtn" aria-label="Help">?</button>
       </div>
-    </section>
+
+      <div class="count-panel hidden" id="countPanel">
+        <div class="cp-label">True Count</div>
+        <div class="cp-hero" id="trueCount">0.0</div>
+        <div class="cp-secondary">
+          <span>Run <strong id="runningCount">0</strong></span>
+          <span>Decks <strong id="decksLeft">6.0</strong></span>
+        </div>
+        <div class="cp-divider"></div>
+        <div class="advantage" id="advantage">NEUTRAL</div>
+      </div>
+
+      <div class="deck-indicator hidden" id="deckIndicator">
+        <div class="deck-stack-mini">
+          <img src="assets/cards/back.svg" alt="">
+          <img src="assets/cards/back.svg" alt="">
+          <img src="assets/cards/back.svg" alt="">
+        </div>
+        <div class="deck-count" id="deckCount">312 / 312</div>
+      </div>
+
+      <div class="table">
+        <div class="dealer-area">
+          <div class="seat-label">Dealer</div>
+          <div class="hand-zone" id="dealerHand">
+            <img src="assets/cards/back.svg" class="placeholder-card" alt="">
+            <img src="assets/cards/back.svg" class="placeholder-card" alt="">
+          </div>
+          <div class="hand-score" id="dealerScore">?</div>
+        </div>
+
+        <div class="message" id="message"></div>
+
+        <div class="player-area">
+          <div class="hand-zone" id="playerHand">
+            <img src="assets/cards/AS.svg" class="placeholder-card" alt="">
+            <img src="assets/cards/KH.svg" class="placeholder-card" alt="">
+          </div>
+          <div class="hand-score blackjack" id="playerScore">21</div>
+          <div class="seat-label">Player</div>
+        </div>
+      </div>
+
+      <div class="money-row hidden" id="moneyRow">
+        <div class="bankroll">
+          <span class="bankroll-label">Bankroll</span>
+          <span class="bankroll-amount" id="bankrollAmount">$1,000</span>
+        </div>
+        <div class="bet-display">
+          <span class="bet-label">Current Bet</span>
+          <span class="bet-amount" id="currentBet">$0</span>
+          <button class="bet-clear" id="clearBet">Clear</button>
+        </div>
+      </div>
+
+      <div class="action-bar">
+        <div class="actions" id="actionsRow">
+          <button class="action-btn" id="hitBtn" disabled><span>Hit</span></button>
+          <button class="action-btn" id="standBtn" disabled><span>Stand</span></button>
+          <button class="action-btn" id="doubleBtn" disabled><span>Double</span></button>
+          <button class="action-btn" id="splitBtn" disabled><span>Split</span></button>
+        </div>
+
+        <div class="chip-rack hidden" id="chipRackM2">
+          <div class="chip-row">
+            <button class="chip chip-skip" data-bet="0"><span class="chip-label">Skip</span></button>
+            <button class="chip chip-low"  data-bet="low"><span class="chip-label">Low</span></button>
+            <button class="chip chip-high" data-bet="high"><span class="chip-label">High</span></button>
+          </div>
+        </div>
+
+        <div class="chip-rack hidden" id="chipRackM3">
+          <div class="chip-row">
+            <button class="chip chip-skip"   data-bet="0"><span class="chip-label">Skip</span></button>
+            <button class="chip chip-green"  data-bet="25"><span class="chip-label">$25</span></button>
+            <button class="chip chip-orange" data-bet="50"><span class="chip-label">$50</span></button>
+            <button class="chip chip-black"  data-bet="100"><span class="chip-label">$100</span></button>
+            <button class="chip chip-pink"   data-bet="250"><span class="chip-label">$250</span></button>
+            <button class="chip chip-purple" data-bet="500"><span class="chip-label">$500</span></button>
+          </div>
+        </div>
+
+        <div class="deal-btn-wrap" id="dealBtnWrap">
+          <button class="deal-btn" id="dealBtn">Deal</button>
+        </div>
+      </div>
+
+    </div>
   </main>
 
   <script src="main.js"></script>
