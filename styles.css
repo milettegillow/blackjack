@@ -120,7 +120,7 @@ body::before {
     drop-shadow(0 0 18px rgba(212, 175, 55, 0.18));
 }
 
-/* ============ DECK ============ */
+/* ============ HOME DECK ============ */
 .deck-wrap {
   display: flex;
   align-items: center;
@@ -128,23 +128,99 @@ body::before {
   width: 100%;
 }
 
-.deck {
+.home-deck {
   position: relative;
-  width: 110px;
-  height: 148px;
-  filter: drop-shadow(0 16px 26px rgba(0, 0, 0, 0.55));
-}
-
-.card-back {
-  position: absolute;
-  top: 14px;
-  left: 0;
   width: 96px;
   height: 134px;
-  transform: translate(calc(var(--i) * 3.5px), calc(var(--i) * -3.5px));
-  user-select: none;
+  margin: 0 auto;
+  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.5));
+}
+
+.deck-card {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  will-change: transform;
+}
+
+.deck-card img {
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  display: block;
   -webkit-user-drag: none;
-  border-radius: 4px;
+  user-select: none;
+}
+
+.deck-card-5 { transform: translate(-4px, 4px) rotate(-2deg);   z-index: 1; }
+.deck-card-4 { transform: translate(3px, 3px) rotate(1.5deg);   z-index: 2; }
+.deck-card-3 { transform: translate(-2px, 2px) rotate(-1deg);   z-index: 3; }
+.deck-card-2 { transform: translate(1px, 1px) rotate(0.5deg);   z-index: 4; }
+.deck-card-1 { transform: translate(0, 0) rotate(0deg);         z-index: 5; }
+
+.deck-card-1 { animation: deckShuffle1 5s ease-in-out infinite; }
+.deck-card-2 { animation: deckShuffle2 5s ease-in-out infinite; }
+.deck-card-3 { animation: deckShuffle3 5s ease-in-out infinite; }
+.deck-card-4 { animation: deckShuffle4 5s ease-in-out infinite; }
+.deck-card-5 { animation: deckShuffle5 5s ease-in-out infinite; }
+
+/* Timeline:
+   0-7%   : Cards 1,2,3 fly out right (fanned, independent). Cards 4,5 begin leaning left.
+   7-10%  : Cards 1,2,3 immediately reverse direction; z-index drops mid-flight.
+   10-14% : Cards 1,2,3 slide in BEHIND cards 4,5 to their resting back positions.
+   10-14% : Cards 4,5 un-lean back to origin.
+   14-100%: Rest. Cards 4,5 prominent on top; cards 1,2,3 sit behind, peeking out at the bottom. */
+
+@keyframes deckShuffle1 {
+  /* Top card: highest angle, flies out, slides in BEHIND deck at the back */
+  0%   { transform: translate(0, 0)          rotate(0deg);    z-index: 5; }
+  7%   { transform: translate(110px, -30px)  rotate(25deg);   z-index: 5; }
+  10%  { transform: translate(75px, -18px)   rotate(15deg);   z-index: 0; }
+  14%  { transform: translate(-2px, 6px)     rotate(-1deg);   z-index: 0; }
+  100% { transform: translate(-2px, 6px)     rotate(-1deg);   z-index: 0; }
+}
+
+@keyframes deckShuffle2 {
+  /* 2nd card: middle angle, flies furthest right */
+  0%   { transform: translate(1px, 1px)      rotate(0.5deg);  z-index: 4; }
+  7%   { transform: translate(120px, -5px)   rotate(18deg);   z-index: 4; }
+  10%  { transform: translate(82px, 0)       rotate(10deg);   z-index: -1; }
+  14%  { transform: translate(2px, 7px)      rotate(1deg);    z-index: -1; }
+  100% { transform: translate(2px, 7px)      rotate(1deg);    z-index: -1; }
+}
+
+@keyframes deckShuffle3 {
+  /* 3rd card: shallowest angle, flies out lower-right */
+  0%   { transform: translate(-2px, 2px)     rotate(-1deg);   z-index: 3; }
+  7%   { transform: translate(105px, 20px)   rotate(8deg);    z-index: 3; }
+  10%  { transform: translate(72px, 14px)    rotate(4deg);    z-index: -2; }
+  14%  { transform: translate(-4px, 8px)     rotate(-1.5deg); z-index: -2; }
+  100% { transform: translate(-4px, 8px)     rotate(-1.5deg); z-index: -2; }
+}
+
+@keyframes deckShuffle4 {
+  /* Slight left lean while cards above are out, then unlean */
+  0%   { transform: translate(3px, 3px)      rotate(1.5deg);  z-index: 2; }
+  4%   { transform: translate(-3px, 4px)     rotate(-0.5deg); z-index: 2; }
+  10%  { transform: translate(-3px, 4px)     rotate(-0.5deg); z-index: 2; }
+  14%  { transform: translate(3px, 3px)      rotate(1.5deg);  z-index: 2; }
+  100% { transform: translate(3px, 3px)      rotate(1.5deg);  z-index: 2; }
+}
+
+@keyframes deckShuffle5 {
+  /* More pronounced left lean (further from pivot) */
+  0%   { transform: translate(-4px, 4px)     rotate(-2deg);   z-index: 1; }
+  4%   { transform: translate(-13px, 5px)    rotate(-4deg);   z-index: 1; }
+  10%  { transform: translate(-13px, 5px)    rotate(-4deg);   z-index: 1; }
+  14%  { transform: translate(-4px, 4px)     rotate(-2deg);   z-index: 1; }
+  100% { transform: translate(-4px, 4px)     rotate(-2deg);   z-index: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deck-card-1, .deck-card-2, .deck-card-3, .deck-card-4, .deck-card-5 {
+    animation: none;
+  }
 }
 
 /* ============ MODE BUTTONS ============ */
