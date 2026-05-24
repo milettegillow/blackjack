@@ -32,6 +32,7 @@
   let quizGuess = 0;
   let quizPhase = 'guess';       // 'guess' | 'reveal'
   let pendingBetTC = 0;          // TC captured at moment of chip click
+  let mode2HintShown = false;    // session-persistent; not reset by resetGameState
 
   // ---------- DOM refs ----------
   const home = document.getElementById('screen-home');
@@ -538,6 +539,18 @@
 
   function hideTutorial() {
     document.getElementById('tutorialModal').classList.add('hidden');
+    showChipHintIfFirstTime();
+  }
+
+  function showChipHintIfFirstTime() {
+    if (currentMode !== 2) return;
+    if (mode2HintShown) return;
+    document.getElementById('chipHint').classList.remove('hidden');
+  }
+
+  function hideChipHint() {
+    document.getElementById('chipHint').classList.add('hidden');
+    mode2HintShown = true;
   }
 
   // ---------- Hi-Lo count tracking (Mode 2) ----------
@@ -1148,6 +1161,9 @@
       reviewEl.innerHTML = '';
     }
     roundDecisions = [];
+    // hide chip-hint defensively (will be re-shown by showGame in Mode 2 if applicable)
+    const chipHintEl = document.getElementById('chipHint');
+    if (chipHintEl) chipHintEl.classList.add('hidden');
     setPhase('idle');
     updateDeckCount();
   }
@@ -1211,7 +1227,10 @@
     home.classList.add('hidden');
     game.classList.remove('hidden');
     if (mode === 1) showTutorial();
-    if (mode === 2) showCountTutorial();
+    if (mode === 2) {
+      showCountTutorial();
+      showChipHintIfFirstTime();
+    }
   }
 
   // ---------- wiring ----------
@@ -1380,6 +1399,7 @@
   }
 
   async function onMode2ChipClick(betChoice) {
+    hideChipHint();
     if (currentMode !== 2) {
       console.error('[mode2] chip click ignored: currentMode is', currentMode);
       return;
