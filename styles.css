@@ -998,10 +998,8 @@ body::before {
 .chip:active { transform: translateY(0); }
 
 .chip.selected {
-  transform: translateY(-4px);
-  box-shadow:
-    0 8px 18px rgba(212, 175, 55, 0.5),
-    0 0 0 2px var(--gold);
+  box-shadow: 0 0 0 2px var(--gold), 0 0 16px rgba(212, 175, 55, 0.5);
+  transform: translateY(-2px);
 }
 
 .chip-skip   { --chip-color: #6b6b6b; }
@@ -1420,38 +1418,9 @@ body::before {
   box-shadow: inset 0 0 0 1px rgba(212, 175, 55, 0.4);
 }
 
-/* ============ MODE 2: CHIP HINT ============ */
-.chip-hint {
-  text-align: center;
-  margin: 0 auto 6px;
-  width: fit-content;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  pointer-events: none;
-  animation: chipHintBounce 1.4s ease-in-out infinite;
-}
-
-.chip-hint.hidden { display: none; }
-
-.chip-hint-text {
-  font-family: 'Playfair Display', serif;
-  font-style: italic;
-  font-size: 14px;
-  color: var(--gold);
-  letter-spacing: 0.04em;
-}
-
-.chip-hint-arrow {
-  font-size: 18px;
-  color: var(--gold);
-  line-height: 1;
-}
-
-@keyframes chipHintBounce {
-  0%, 100% { transform: translateY(0); opacity: 0.85; }
-  50%      { transform: translateY(4px); opacity: 1; }
+/* ============ MODE 2: DEAL BUTTON POSITIONING ============ */
+#gameScreen[data-mode="2"] .deal-btn-wrap {
+  margin-top: 12px;
 }
 
 /* ============ MODE 2: COUNT BADGE ON DEALT CARDS ============ */

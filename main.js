@@ -31,8 +31,7 @@
   let activeTutorial = 'play';   // 'play' | 'count'
   let quizGuess = 0;
   let quizPhase = 'guess';       // 'guess' | 'reveal'
-  let pendingBetTC = 0;          // TC captured at moment of chip click
-  let mode2HintShown = false;    // session-persistent; not reset by resetGameState
+  let pendingBetTC = 0;          // TC captured at deal time
 
   // ---------- DOM refs ----------
   const home = document.getElementById('screen-home');
@@ -539,18 +538,10 @@
 
   function hideTutorial() {
     document.getElementById('tutorialModal').classList.add('hidden');
-    showChipHintIfFirstTime();
   }
 
-  function showChipHintIfFirstTime() {
-    if (currentMode !== 2) return;
-    if (mode2HintShown) return;
-    document.getElementById('chipHint').classList.remove('hidden');
-  }
-
-  function hideChipHint() {
-    document.getElementById('chipHint').classList.add('hidden');
-    mode2HintShown = true;
+  function clearChipSelection() {
+    document.querySelectorAll('.mode2-chips .chip').forEach(c => c.classList.remove('selected'));
   }
 
   // ---------- Hi-Lo count tracking (Mode 2) ----------
@@ -916,6 +907,7 @@
       if (currentMode === 2 && pendingBetChoice) {
         renderBetReview(pendingBetChoice, pendingBetTC);
         mode2HandsPlayed++;
+        pendingBetChoice = null;
       }
       return;
     }
@@ -1124,6 +1116,7 @@
     if (currentMode === 2 && pendingBetChoice) {
       renderBetReview(pendingBetChoice, pendingBetTC);
       mode2HandsPlayed++;
+      pendingBetChoice = null;
     }
   }
 
@@ -1161,15 +1154,14 @@
       reviewEl.innerHTML = '';
     }
     roundDecisions = [];
-    // hide chip-hint defensively (will be re-shown by showGame in Mode 2 if applicable)
-    const chipHintEl = document.getElementById('chipHint');
-    if (chipHintEl) chipHintEl.classList.add('hidden');
+    clearChipSelection();
     setPhase('idle');
     updateDeckCount();
   }
 
   function showHome() {
     currentMode = null;
+    document.getElementById('gameScreen').dataset.mode = '';
     resetGameState();
     home.classList.remove('hidden');
     game.classList.add('hidden');
@@ -1221,16 +1213,13 @@
       document.getElementById('checkCountBtn').classList.add('hidden');
     }
 
-    // Deal button is hidden in Mode 2 (chips ARE the deal trigger)
-    document.getElementById('dealBtnWrap').classList.toggle('hidden', mode === 2);
+    document.getElementById('dealBtnWrap').classList.remove('hidden');
+    document.getElementById('gameScreen').dataset.mode = String(mode);
 
     home.classList.add('hidden');
     game.classList.remove('hidden');
     if (mode === 1) showTutorial();
-    if (mode === 2) {
-      showCountTutorial();
-      showChipHintIfFirstTime();
-    }
+    if (mode === 2) showCountTutorial();
   }
 
   // ---------- wiring ----------
@@ -1239,7 +1228,7 @@
   });
 
   backBtn.addEventListener('click', showHome);
-  dealBtn.addEventListener('click', dealNewHand);
+  dealBtn.addEventListener('click', onDealClick);
   hitBtn.addEventListener('click', playerHit);
   standBtn.addEventListener('click', playerStand);
   doubleBtn.addEventListener('click', playerDouble);
@@ -1318,14 +1307,14 @@
 
   document.querySelectorAll('.submode-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
-      if (phase !== 'idle' && phase !== 'over') return;
       document.querySelectorAll('.submode-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       countSubMode = btn.dataset.submode;
       applySubModeUI();
       resetShoeAndCount();
-      clearBetReview();
-      mode2HandsPlayed = 0;
+      resetGameState();
+      clearChipSelection();
+      pendingBetChoice = null;
     });
   });
 
@@ -1396,31 +1385,41 @@
   async function handleSkippedHand() {
     renderBetReview(pendingBetChoice, pendingBetTC);
     mode2HandsPlayed++;
+    pendingBetChoice = null;
   }
 
-  async function onMode2ChipClick(betChoice) {
-    hideChipHint();
-    if (currentMode !== 2) {
-      console.error('[mode2] chip click ignored: currentMode is', currentMode);
-      return;
-    }
-    if (phase !== 'idle' && phase !== 'over') {
-      console.error('[mode2] chip click ignored: phase is', phase);
-      return;
-    }
-    if (settling) {
-      console.error('[mode2] chip click ignored: settling in progress');
-      return;
-    }
-    if (maybeShowQuiz()) return;
-    clearBetReview();
+  function onMode2ChipClick(betChoice) {
+    if (currentMode !== 2) return;
+    if (phase !== 'idle' && phase !== 'over') return;
     pendingBetChoice = betChoice;
-    pendingBetTC = getTrueCount();
-    if (betChoice === 'skip') {
-      await handleSkippedHand();
-    } else {
+    clearChipSelection();
+    const clicked = document.querySelector(`.mode2-chips .chip[data-bet="${betChoice}"]`);
+    if (clicked) clicked.classList.add('selected');
+  }
+
+  async function onDealClick() {
+    if (phase !== 'idle' && phase !== 'over') return;
+    if (settling) return;
+
+    if (currentMode === 2) {
+      if (!pendingBetChoice || pendingBetChoice === 'skip') {
+        pendingBetChoice = 'skip';
+        pendingBetTC = getTrueCount();
+        if (maybeShowQuiz()) return;
+        clearBetReview();
+        await handleSkippedHand();
+        clearChipSelection();
+        return;
+      }
+      pendingBetTC = getTrueCount();
+      if (maybeShowQuiz()) return;
+      clearBetReview();
       await dealNewHand();
+      clearChipSelection();
+      return;
     }
+
+    await dealNewHand();
   }
 
   document.querySelectorAll('.mode2-chips .chip').forEach((c) => {
