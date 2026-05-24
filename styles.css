@@ -751,7 +751,7 @@ body::before {
   font-family: 'Playfair Display', Georgia, serif;
   font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.1em;
   cursor: pointer;
   box-shadow:
     0 6px 24px var(--gold-glow),
@@ -1005,9 +1005,9 @@ body::before {
   color: #2a1c00;
   padding: 12px 32px;
   font-family: 'Playfair Display', serif;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.1em;
   cursor: pointer;
   border-radius: 3px;
   box-shadow:
