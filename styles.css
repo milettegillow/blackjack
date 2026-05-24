@@ -923,3 +923,100 @@ body::before {
 .chip-black  { --chip-color: #1a1a1a; }
 .chip-pink   { --chip-color: #be185d; }
 .chip-purple { --chip-color: #6b21a8; }
+
+/* ============ BANKRUPT MODAL ============ */
+.bankrupt-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  pointer-events: auto;
+}
+
+.bankrupt-modal.hidden {
+  display: none;
+}
+
+.bankrupt-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: bankruptFade 0.3s ease;
+}
+
+.bankrupt-card {
+  position: relative;
+  background: linear-gradient(180deg, rgba(13, 92, 61, 0.85), rgba(7, 61, 40, 0.85));
+  border: 1px solid var(--gold);
+  border-radius: 6px;
+  padding: 32px 28px 24px;
+  max-width: 320px;
+  width: 100%;
+  text-align: center;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.6),
+    0 0 40px rgba(212, 175, 55, 0.15);
+  animation: bankruptCardIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.bankrupt-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 1.1;
+  margin-bottom: 14px;
+  background: linear-gradient(180deg, #f4d77a 0%, #d4af37 25%, #b8862b 50%, #d4af37 75%, #f4d77a 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+}
+
+.bankrupt-body {
+  font-family: 'Manrope', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-dim);
+  margin-bottom: 26px;
+}
+
+.bankrupt-btn {
+  appearance: none;
+  background: linear-gradient(180deg, #f4d77a, #d4af37, #b8862b);
+  border: none;
+  color: #2a1c00;
+  padding: 12px 32px;
+  font-family: 'Playfair Display', serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  cursor: pointer;
+  border-radius: 3px;
+  box-shadow:
+    0 4px 18px rgba(212, 175, 55, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bankrupt-btn:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 6px 22px rgba(212, 175, 55, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+@keyframes bankruptFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes bankruptCardIn {
+  from { opacity: 0; transform: scale(0.94) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}

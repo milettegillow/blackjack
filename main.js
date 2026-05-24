@@ -247,7 +247,20 @@
       settling = false;
       showChipRack();
       updateButtonStates();
+      if (currentMode === 3 && bankroll < 25) showBankruptModal();
     }, 2400);
+  }
+
+  function showBankruptModal() {
+    const modal = document.getElementById('bankruptModal');
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+  }
+
+  function hideBankruptModal() {
+    const modal = document.getElementById('bankruptModal');
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden', 'true');
   }
 
   // ---------- chip rack visibility ----------
@@ -588,6 +601,7 @@
     playerHandEl.innerHTML = '';
     hideMessage();
     hideHandIndicator();
+    hideBankruptModal();
     setPhase('idle');
     updateDeckCount();
   }
@@ -667,6 +681,11 @@
     if (phase !== 'idle' && phase !== 'over') return;
     resetBankroll();
     updateButtonStates();
+  });
+
+  document.getElementById('bankruptHomeBtn').addEventListener('click', () => {
+    hideBankruptModal();
+    backBtn.click();
   });
 
   // ---------- init + deep-link ----------
