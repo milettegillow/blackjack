@@ -1415,6 +1415,21 @@ body::before {
 .round-review .review-line.correct { color: #a7d4b3; }
 .round-review .review-line.miss { color: #f0c275; }
 
+.round-review .review-section-label {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+  margin-top: 6px;
+  margin-bottom: 4px;
+}
+
+.round-review .review-section-label:first-of-type {
+  margin-top: 0;
+}
+
 .round-review .review-summary {
   font-family: 'Lora', Georgia, serif;
   font-style: italic;

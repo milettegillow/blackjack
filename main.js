@@ -712,7 +712,7 @@
   }
 
   function logDecision(action) {
-    if (currentMode !== 1) return;
+    if (currentMode !== 1 && currentMode !== 2) return;
     const hand = playerHands[activeHandIndex];
     if (!hand || hand.cards.length === 0 || dealerHand.length === 0) return;
     const ev = evaluateHand(hand.cards);
@@ -909,7 +909,7 @@
       settleAndShowResult([result]);
       endHand(result);
       if (currentMode === 2 && pendingBetChoice) {
-        renderBetReview(pendingBetChoice, pendingBetTC);
+        renderMode2Review(pendingBetChoice, pendingBetTC);
         mode2HandsPlayed++;
         pendingBetChoice = null;
       }
@@ -1118,7 +1118,7 @@
 
     // Mode 2: show bet review (compare chip choice against TC at bet time)
     if (currentMode === 2 && pendingBetChoice) {
-      renderBetReview(pendingBetChoice, pendingBetTC);
+      renderMode2Review(pendingBetChoice, pendingBetTC);
       mode2HandsPlayed++;
       pendingBetChoice = null;
     }
@@ -1367,20 +1367,43 @@
     return 'high';
   }
 
-  function renderBetReview(chipChoice, tc) {
+  function renderMode2Review(chipChoice, tc) {
+    // Bet section
     const optimal = optimalChip(tc);
-    const correct = chipChoice === optimal;
-    const icon = correct ? '✓' : '✗';
-    const cls  = correct ? 'correct' : 'miss';
+    const betCorrect = chipChoice === optimal;
+    const betIcon = betCorrect ? '✓' : '✗';
+    const betCls  = betCorrect ? 'correct' : 'miss';
     const choiceLabel  = chipLabelForReview(chipChoice);
     const optimalLabel = chipLabelForReview(optimal);
-    const line = correct
-      ? `${icon} ${choiceLabel} - TC was ${formatTC(tc)}, that was the call`
-      : `${icon} ${choiceLabel} - TC was ${formatTC(tc)}, ${optimalLabel.toLowerCase()} was the call`;
+    const betLine = betCorrect
+      ? `${betIcon} ${choiceLabel} - TC was ${formatTC(tc)}, that was the call`
+      : `${betIcon} ${choiceLabel} - TC was ${formatTC(tc)}, ${optimalLabel.toLowerCase()} was the call`;
+
+    // Play section (only if there were play decisions, i.e. not a skipped hand)
+    let playHtml = '';
+    if (roundDecisions.length > 0) {
+      playHtml = '<div class="review-section-label">How you played</div>';
+      roundDecisions.forEach(d => {
+        const isCorrect = d.actionTaken === d.optimalButton;
+        const playIcon = isCorrect ? '✓' : '✗';
+        const playCls  = isCorrect ? 'correct' : 'miss';
+        const action = capitalize(d.actionTaken);
+        const hand = handDescription(d);
+        const dealer = rankLabel(d.dealerUp);
+        if (isCorrect) {
+          playHtml += `<div class="review-line ${playCls}">${playIcon} ${action} on ${hand} vs ${dealer} - correct</div>`;
+        } else {
+          const should = shouldHavePhrase(d.optimalCode);
+          playHtml += `<div class="review-line ${playCls}">${playIcon} ${action} on ${hand} vs ${dealer} - should have ${should}</div>`;
+        }
+      });
+    }
 
     const html = `
-      <div class="review-title">Bet Review</div>
-      <div class="review-line ${cls}">${line}</div>
+      <div class="review-title">Round Review</div>
+      <div class="review-section-label">Bet decision</div>
+      <div class="review-line ${betCls}">${betLine}</div>
+      ${playHtml}
     `;
     const el = document.getElementById('roundReview');
     el.innerHTML = html;
@@ -1395,7 +1418,7 @@
 
   // ---------- Mode 2: chip click == deal trigger; skipped hand path ----------
   async function handleSkippedHand() {
-    renderBetReview(pendingBetChoice, pendingBetTC);
+    renderMode2Review(pendingBetChoice, pendingBetTC);
     mode2HandsPlayed++;
     pendingBetChoice = null;
   }
@@ -1539,7 +1562,7 @@
               updateButtonStates();
             }
           }
-          else if (action === 'deal')   await dealNewHand();
+          else if (action === 'deal')   await onDealClick();
           else if (action === 'hit')    await playerHit();
           else if (action === 'stand')  await playerStand();
           else if (action === 'double') await playerDouble();
