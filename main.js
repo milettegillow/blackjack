@@ -306,7 +306,7 @@
           <div class="tut-mini"><img src="/assets/cards/QC.svg" alt=""><div class="tut-value">10</div></div>
           <div class="tut-mini"><img src="/assets/cards/AD.svg" alt=""><div class="tut-value">1 or 11</div></div>
         </div>`,
-      body: `Number cards count as their face value. <strong>J, Q, K</strong> all count as 10. An <strong>Ace</strong> counts as either 1 or 11 — whichever helps you.`
+      body: `Number cards count as their face value. <strong>J, Q, K</strong> all count as 10. An <strong>Ace</strong> counts as either 1 or 11 - whichever helps you.`
     },
     {
       title: 'Hit, Stand, Bust',
@@ -343,7 +343,7 @@
             <div class="tut-label">Hard 17</div>
           </div>
         </div>`,
-      body: `A <strong>soft</strong> hand has an Ace counted as 11 — you can't bust on the next card because the Ace flips to 1 if needed. A <strong>hard</strong> hand has no Ace, or the Ace is forced to count as 1.`
+      body: `A <strong>soft</strong> hand has an Ace counted as 11 - you can't bust on the next card because the Ace flips to 1 if needed. A <strong>hard</strong> hand has no Ace, or the Ace is forced to count as 1.`
     },
     {
       title: "The Dealer's Rules",
@@ -392,11 +392,11 @@
       visual: `
         <div class="tut-review-mockup">
           <div class="review-title">Round Review</div>
-          <div class="review-line correct">✓ Hit on 14 vs 6 — correct</div>
-          <div class="review-line miss">✗ Stood on 16 vs 10 — should have hit</div>
+          <div class="review-line correct">✓ Hit on 14 vs 6 - correct</div>
+          <div class="review-line miss">✗ Stood on 16 vs 10 - should have hit</div>
           <div class="review-summary">One mistake this round.</div>
         </div>`,
-      body: `For every combination of your hand and the dealer's upcard, there's a mathematically optimal move. After each round, this mode will <em>review every decision you made</em> and tell you if it was the right call — even if you won by getting lucky, or lost despite playing perfectly.`
+      body: `For every combination of your hand and the dealer's upcard, there's a mathematically optimal move. After each round, this mode will <em>review every decision you made</em> and tell you if it was the right call - even if you won by getting lucky, or lost despite playing perfectly.`
     }
   ];
 
@@ -409,7 +409,7 @@
           <div class="tut-mini"><img src="/assets/cards/KD.svg" alt=""><div class="tut-value minus">−1</div></div>
           <div class="tut-mini"><img src="/assets/cards/8C.svg" alt=""><div class="tut-value zero">0</div></div>
         </div>`,
-      body: `Card counting tracks the ratio of high cards to low cards remaining in the shoe. When more high cards are left, the player has the edge — and you should bet more.`
+      body: `Card counting tracks the ratio of high cards to low cards remaining in the shoe. When more high cards are left, the player has the edge - and you should bet more.`
     },
     {
       title: 'Hi-Lo Values',
@@ -467,7 +467,7 @@
           <div class="tc-op">=</div>
           <div class="tc-piece tc-result"><div class="tc-num">+3</div><div class="tc-cap">True</div></div>
         </div>`,
-      body: `The <strong>true count</strong> divides the running count by the number of decks remaining in the shoe. This adjusts for the size of the deck — a +6 count is much stronger with one deck left than with six.`
+      body: `The <strong>true count</strong> divides the running count by the number of decks remaining in the shoe. This adjusts for the size of the deck - a +6 count is much stronger with one deck left than with six.`
     },
     {
       title: 'When You Win',
@@ -477,7 +477,7 @@
           <div class="edge-row"><span class="edge-label">TC = +1</span><span class="edge-even">Roughly even</span></div>
           <div class="edge-row"><span class="edge-label">TC ≥ +2</span><span class="edge-player">Player edge</span></div>
         </div>`,
-      body: `A positive true count means more 10s and Aces are still in the shoe — which favors the player. Around <em>+2 or higher</em>, the math actually tips in your favor.`
+      body: `A positive true count means more 10s and Aces are still in the shoe - which favours the player. Around <em>+2 or higher</em>, the maths actually tips in your favour.`
     },
     {
       title: 'The Bet Ramp',
@@ -495,9 +495,9 @@
       title: 'Three Practice Modes',
       visual: `
         <div class="submode-preview">
-          <div class="sp-row"><strong>Visible</strong> — count updates live, badges flash on each card</div>
-          <div class="sp-row"><strong>Hidden</strong> — count is hidden, periodic accuracy checks</div>
-          <div class="sp-row"><strong>Bet Sizing</strong> — practice your bet ramp with five chip options</div>
+          <div class="sp-row"><strong>Visible</strong> - count updates live, badges flash on each card</div>
+          <div class="sp-row"><strong>Hidden</strong> - count is hidden, periodic accuracy checks</div>
+          <div class="sp-row"><strong>Bet Sizing</strong> - practice your bet ramp with five chip options</div>
         </div>`,
       body: `Before each hand, choose to <strong>skip</strong> (bad count) or how much to <strong>bet</strong> (neutral or good count). After each hand you'll see whether your bet decision matched the count.`
     }
@@ -745,10 +745,10 @@
       const hand = handDescription(d);
       const dealer = rankLabel(d.dealerUp);
       if (correct) {
-        html += `<div class="review-line ${cls}">${icon} ${action} on ${hand} vs ${dealer} — correct</div>`;
+        html += `<div class="review-line ${cls}">${icon} ${action} on ${hand} vs ${dealer} - correct</div>`;
       } else {
         const should = shouldHavePhrase(d.optimalCode);
-        html += `<div class="review-line ${cls}">${icon} ${action} on ${hand} vs ${dealer} — should have ${should}</div>`;
+        html += `<div class="review-line ${cls}">${icon} ${action} on ${hand} vs ${dealer} - should have ${should}</div>`;
       }
     });
     let summary;
@@ -1344,8 +1344,8 @@
     const choiceLabel  = chipLabelForReview(chipChoice);
     const optimalLabel = chipLabelForReview(optimal);
     const line = correct
-      ? `${icon} ${choiceLabel} — TC was ${formatTC(tc)}, that was the call`
-      : `${icon} ${choiceLabel} — TC was ${formatTC(tc)}, ${optimalLabel.toLowerCase()} was the call`;
+      ? `${icon} ${choiceLabel} - TC was ${formatTC(tc)}, that was the call`
+      : `${icon} ${choiceLabel} - TC was ${formatTC(tc)}, ${optimalLabel.toLowerCase()} was the call`;
 
     const html = `
       <div class="review-title">Bet Review</div>
