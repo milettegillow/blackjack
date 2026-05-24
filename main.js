@@ -23,6 +23,16 @@
   let currentBet = 0;
   let settling = false;          // true during the 2.4s bet-result animation
 
+  // Mode 2 (Learn to Count) state
+  let runningCount = 0;
+  let countSubMode = 'visible';  // 'visible' | 'hidden' | 'bet-sizing'
+  let mode2HandsPlayed = 0;      // counts hands since last quiz
+  let pendingBetChoice = null;   // chip user committed before dealing
+  let activeTutorial = 'play';   // 'play' | 'count'
+  let quizGuess = 0;
+  let quizPhase = 'guess';       // 'guess' | 'reveal'
+  let pendingBetTC = 0;          // TC captured at moment of chip click
+
   // ---------- DOM refs ----------
   const home = document.getElementById('screen-home');
   const game = document.getElementById('gameScreen');
@@ -31,7 +41,8 @@
   const countPanel = document.getElementById('countPanel');
   const deckIndicator = document.getElementById('deckIndicator');
   const moneyRow = document.getElementById('moneyRow');
-  const chipRackM2 = document.getElementById('chipRackM2');
+  const chipsRackThree = document.getElementById('chipsRackThree');
+  const chipsRackRamp = document.getElementById('chipsRackRamp');
   const chipRackM3 = document.getElementById('chipRackM3');
   const dealerHandEl = document.getElementById('dealerHand');
   const playerHandEl = document.getElementById('playerHand');
@@ -389,28 +400,215 @@
     }
   ];
 
+  const COUNT_LESSONS = [
+    {
+      title: 'Card Counting',
+      visual: `
+        <div class="tut-cards-row tut-spaced">
+          <div class="tut-mini"><img src="/assets/cards/5H.svg" alt=""><div class="tut-value plus">+1</div></div>
+          <div class="tut-mini"><img src="/assets/cards/KD.svg" alt=""><div class="tut-value minus">−1</div></div>
+          <div class="tut-mini"><img src="/assets/cards/8C.svg" alt=""><div class="tut-value zero">0</div></div>
+        </div>`,
+      body: `Card counting tracks the ratio of high cards to low cards remaining in the shoe. When more high cards are left, the player has the edge — and you should bet more.`
+    },
+    {
+      title: 'Hi-Lo Values',
+      visual: `
+        <div class="hilo-groups">
+          <div class="hilo-group plus">
+            <div class="hilo-cards">
+              <img src="/assets/cards/2S.svg" alt="">
+              <img src="/assets/cards/3D.svg" alt="">
+              <img src="/assets/cards/4H.svg" alt="">
+              <img src="/assets/cards/5C.svg" alt="">
+              <img src="/assets/cards/6S.svg" alt="">
+            </div>
+            <div class="hilo-label">+1</div>
+          </div>
+          <div class="hilo-group zero">
+            <div class="hilo-cards">
+              <img src="/assets/cards/7H.svg" alt="">
+              <img src="/assets/cards/8C.svg" alt="">
+              <img src="/assets/cards/9D.svg" alt="">
+            </div>
+            <div class="hilo-label">0</div>
+          </div>
+          <div class="hilo-group minus">
+            <div class="hilo-cards">
+              <img src="/assets/cards/10S.svg" alt="">
+              <img src="/assets/cards/JD.svg" alt="">
+              <img src="/assets/cards/QH.svg" alt="">
+              <img src="/assets/cards/KC.svg" alt="">
+              <img src="/assets/cards/AS.svg" alt="">
+            </div>
+            <div class="hilo-label">−1</div>
+          </div>
+        </div>`,
+      body: `In the <strong>Hi-Lo</strong> system, every card has a value. Low cards (2–6) are <em>+1</em>. Middle cards (7–9) are <em>0</em>. High cards (10, J, Q, K, A) are <em>−1</em>.`
+    },
+    {
+      title: 'Running Count',
+      visual: `
+        <div class="rc-sequence">
+          <div class="rc-step"><img src="/assets/cards/5S.svg" alt=""><div class="rc-val plus">+1</div><div class="rc-total">RC: +1</div></div>
+          <div class="rc-step"><img src="/assets/cards/KH.svg" alt=""><div class="rc-val minus">−1</div><div class="rc-total">RC: 0</div></div>
+          <div class="rc-step"><img src="/assets/cards/4D.svg" alt=""><div class="rc-val plus">+1</div><div class="rc-total">RC: +1</div></div>
+          <div class="rc-step"><img src="/assets/cards/8C.svg" alt=""><div class="rc-val zero">0</div><div class="rc-total">RC: +1</div></div>
+        </div>`,
+      body: `As each card is dealt, add its Hi-Lo value to your running total. This is the <strong>running count</strong>.`
+    },
+    {
+      title: 'True Count',
+      visual: `
+        <div class="tc-calc">
+          <div class="tc-piece"><div class="tc-num">+6</div><div class="tc-cap">Running</div></div>
+          <div class="tc-op">÷</div>
+          <div class="tc-piece"><div class="tc-num">2</div><div class="tc-cap">Decks left</div></div>
+          <div class="tc-op">=</div>
+          <div class="tc-piece tc-result"><div class="tc-num">+3</div><div class="tc-cap">True</div></div>
+        </div>`,
+      body: `The <strong>true count</strong> divides the running count by the number of decks remaining in the shoe. This adjusts for the size of the deck — a +6 count is much stronger with one deck left than with six.`
+    },
+    {
+      title: 'When You Win',
+      visual: `
+        <div class="edge-bar">
+          <div class="edge-row"><span class="edge-label">TC ≤ 0</span><span class="edge-house">House edge</span></div>
+          <div class="edge-row"><span class="edge-label">TC = +1</span><span class="edge-even">Roughly even</span></div>
+          <div class="edge-row"><span class="edge-label">TC ≥ +2</span><span class="edge-player">Player edge</span></div>
+        </div>`,
+      body: `A positive true count means more 10s and Aces are still in the shoe — which favors the player. Around <em>+2 or higher</em>, the math actually tips in your favor.`
+    },
+    {
+      title: 'The Bet Ramp',
+      visual: `
+        <div class="ramp">
+          <div class="ramp-step"><div class="ramp-tc">TC ≤ −1</div><div class="ramp-bet">Skip</div></div>
+          <div class="ramp-step"><div class="ramp-tc">TC &lt; +2</div><div class="ramp-bet">1×</div></div>
+          <div class="ramp-step"><div class="ramp-tc">+2 to +3</div><div class="ramp-bet">2×</div></div>
+          <div class="ramp-step"><div class="ramp-tc">+3 to +4</div><div class="ramp-bet">4×</div></div>
+          <div class="ramp-step ramp-top"><div class="ramp-tc">TC ≥ +4</div><div class="ramp-bet">8×</div></div>
+        </div>`,
+      body: `Counting is only useful if you <em>bet more when you have the edge</em>. Skip cold counts. Bet small when neutral. Ramp up as the count rises.`
+    },
+    {
+      title: 'Three Practice Modes',
+      visual: `
+        <div class="submode-preview">
+          <div class="sp-row"><strong>Visible</strong> — count updates live, badges flash on each card</div>
+          <div class="sp-row"><strong>Hidden</strong> — count is hidden, periodic accuracy checks</div>
+          <div class="sp-row"><strong>Bet Sizing</strong> — practice your bet ramp with five chip options</div>
+        </div>`,
+      body: `Before each hand, choose to <strong>skip</strong> (bad count) or how much to <strong>bet</strong> (neutral or good count). After each hand you'll see whether your bet decision matched the count.`
+    }
+  ];
+
   let tutorialIndex = 0;
 
+  function activeTutorialLessons() {
+    return activeTutorial === 'count' ? COUNT_LESSONS : TUTORIAL_LESSONS;
+  }
+
   function showTutorial() {
+    activeTutorial = 'play';
+    tutorialIndex = 0;
+    renderTutorial();
+    document.getElementById('tutorialModal').classList.remove('hidden');
+  }
+
+  function showCountTutorial() {
+    activeTutorial = 'count';
     tutorialIndex = 0;
     renderTutorial();
     document.getElementById('tutorialModal').classList.remove('hidden');
   }
 
   function renderTutorial() {
-    const lesson = TUTORIAL_LESSONS[tutorialIndex];
-    document.getElementById('tutorialProgress').textContent = `${tutorialIndex + 1} / ${TUTORIAL_LESSONS.length}`;
+    const lessons = activeTutorialLessons();
+    const lesson = lessons[tutorialIndex];
+    document.getElementById('tutorialProgress').textContent = `${tutorialIndex + 1} / ${lessons.length}`;
     document.getElementById('tutorialTitle').textContent = lesson.title;
     document.getElementById('tutorialBody').innerHTML = `
       <div class="tutorial-visual">${lesson.visual}</div>
       <div class="tutorial-text">${lesson.body}</div>
     `;
     const nextBtn = document.getElementById('tutorialNext');
-    nextBtn.textContent = tutorialIndex === TUTORIAL_LESSONS.length - 1 ? 'Start Playing' : 'Next';
+    nextBtn.textContent = tutorialIndex === lessons.length - 1 ? 'Start Playing' : 'Next';
   }
 
   function hideTutorial() {
     document.getElementById('tutorialModal').classList.add('hidden');
+  }
+
+  // ---------- Hi-Lo count tracking (Mode 2) ----------
+  function hiloValue(rank) {
+    if (['2','3','4','5','6'].includes(rank)) return 1;
+    if (['7','8','9'].includes(rank)) return 0;
+    return -1; // 10, J, Q, K, A
+  }
+
+  function getTrueCount() {
+    const decksRemaining = Math.max(0.5, shoe.length / 52);
+    return runningCount / decksRemaining;
+  }
+
+  function formatTC(tc) {
+    const r = tc.toFixed(1);
+    return (tc >= 0 ? '+' : '') + r;
+  }
+
+  function updateCountUI() {
+    if (currentMode !== 2) return;
+    const decksRemaining = Math.max(0.5, shoe.length / 52);
+    const tc = runningCount / decksRemaining;
+    const rcEl   = document.getElementById('runningCount');
+    const tcEl   = document.getElementById('trueCount');
+    const dEl    = document.getElementById('decksLeft');
+    const advEl  = document.getElementById('advantage');
+    if (rcEl) rcEl.textContent = runningCount >= 0 ? `+${runningCount}` : `${runningCount}`;
+    if (tcEl) {
+      tcEl.textContent = formatTC(tc);
+      tcEl.classList.remove('pos', 'strong-pos', 'neg');
+      if (tc >= 2) tcEl.classList.add('strong-pos');
+      else if (tc >= 1) tcEl.classList.add('pos');
+      else if (tc <= -1) tcEl.classList.add('neg');
+    }
+    if (dEl) dEl.textContent = decksRemaining.toFixed(1);
+    if (advEl) {
+      advEl.classList.remove('pos', 'strong-pos', 'neg');
+      if (tc >= 2) { advEl.textContent = 'PLAYER'; advEl.classList.add('strong-pos'); }
+      else if (tc >= 1) { advEl.textContent = 'EDGE'; advEl.classList.add('pos'); }
+      else if (tc <= -1) { advEl.textContent = 'HOUSE'; advEl.classList.add('neg'); }
+      else { advEl.textContent = 'NEUTRAL'; }
+    }
+  }
+
+  function applyHiloOnDeal(card) {
+    if (currentMode !== 2) return;
+    runningCount += hiloValue(card.rank);
+    updateCountUI();
+  }
+
+  function flashCountBadge(cardEl, rank) {
+    if (currentMode !== 2) return;
+    if (countSubMode === 'hidden') return;
+    if (!cardEl) return;
+    const v = hiloValue(rank);
+    const sign = v > 0 ? 'plus' : v < 0 ? 'minus' : 'zero';
+    const text = v > 0 ? `+${v}` : `${v}`;
+    const badge = document.createElement('div');
+    badge.className = `count-badge ${sign}`;
+    badge.textContent = text;
+    cardEl.appendChild(badge);
+    setTimeout(() => badge.remove(), 1900);
+  }
+
+  function resetShoeAndCount() {
+    shoe = buildShoe();
+    initialShoeSize = shoe.length;
+    runningCount = 0;
+    updateDeckCount();
+    updateCountUI();
   }
 
   // ---------- basic strategy (Mode 1 coaching) ----------
@@ -568,8 +766,7 @@
 
   // ---------- chip rack disabled state ----------
   function setChipRackDisabled(disabled) {
-    chipRackM2.classList.toggle('disabled', disabled);
-    chipRackM3.classList.toggle('disabled', disabled);
+    document.querySelectorAll('.chip-rack').forEach(r => r.classList.toggle('disabled', disabled));
     moneyRow.classList.toggle('disabled', disabled);
   }
 
@@ -645,6 +842,10 @@
     layoutHand(handZone);
     await sleep(520);
     el.classList.remove('dealing');
+    if (!faceDown) {
+      applyHiloOnDeal(card);
+      flashCountBadge(el, card.rank);
+    }
   }
 
   async function dealNewHand() {
@@ -699,6 +900,10 @@
 
       settleAndShowResult([result]);
       endHand(result);
+      if (currentMode === 2 && pendingBetChoice) {
+        renderBetReview(pendingBetChoice, pendingBetTC);
+        mode2HandsPlayed++;
+      }
       return;
     }
 
@@ -855,6 +1060,10 @@
     if (flipped) {
       flipped.classList.remove('flipped');
       await sleep(550);
+      if (dealerHand.length >= 2) {
+        applyHiloOnDeal(dealerHand[1]);
+        flashCountBadge(flipped, dealerHand[1].rank);
+      }
     }
     updateScores();
   }
@@ -897,6 +1106,12 @@
     else if (pushes === results.length) outcome = 'push';
     else outcome = 'mixed';
     renderRoundReview(outcome);
+
+    // Mode 2: show bet review (compare chip choice against TC at bet time)
+    if (currentMode === 2 && pendingBetChoice) {
+      renderBetReview(pendingBetChoice, pendingBetTC);
+      mode2HandsPlayed++;
+    }
   }
 
   function endHand(result) {
@@ -932,25 +1147,60 @@
     home.classList.remove('hidden');
     game.classList.add('hidden');
     countPanel.classList.add('hidden');
+    countPanel.classList.remove('hidden-mode');
+    document.getElementById('checkCountBtn').classList.add('hidden');
     deckIndicator.classList.add('hidden');
     moneyRow.classList.add('hidden');
-    chipRackM2.classList.add('hidden');
+    document.getElementById('submodeSwitcher').classList.add('hidden');
+    document.getElementById('chipsRackThree').classList.add('hidden');
+    document.getElementById('chipsRackRamp').classList.add('hidden');
     chipRackM3.classList.add('hidden');
+    document.getElementById('dealBtnWrap').classList.remove('hidden');
   }
 
   function showGame(mode) {
     currentMode = mode;
     if (mode === 3) resetBankroll();
     resetGameState();
+
+    // Mode 2 specifics: fresh shoe + count + sub-mode state
+    if (mode === 2) {
+      countSubMode = 'visible';
+      mode2HandsPlayed = 0;
+      pendingBetChoice = null;
+      document.querySelectorAll('.submode-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.submode === 'visible');
+      });
+      runningCount = 0;
+    }
+
     topMode.textContent = MODE_NAMES[mode] || '';
     countPanel.classList.toggle('hidden', mode !== 2);
     deckIndicator.classList.toggle('hidden', mode === 1);
     moneyRow.classList.toggle('hidden', mode !== 3);
-    chipRackM2.classList.toggle('hidden', mode !== 2);
     chipRackM3.classList.toggle('hidden', mode !== 3);
+
+    const switcher = document.getElementById('submodeSwitcher');
+    switcher.classList.toggle('hidden', mode !== 2);
+
+    // Mode 2 chip racks managed by applySubModeUI
+    if (mode === 2) {
+      applySubModeUI();
+      updateCountUI();
+    } else {
+      document.getElementById('chipsRackThree').classList.add('hidden');
+      document.getElementById('chipsRackRamp').classList.add('hidden');
+      countPanel.classList.remove('hidden-mode');
+      document.getElementById('checkCountBtn').classList.add('hidden');
+    }
+
+    // Deal button is hidden in Mode 2 (chips ARE the deal trigger)
+    document.getElementById('dealBtnWrap').classList.toggle('hidden', mode === 2);
+
     home.classList.add('hidden');
     game.classList.remove('hidden');
     if (mode === 1) showTutorial();
+    if (mode === 2) showCountTutorial();
   }
 
   // ---------- wiring ----------
@@ -1009,9 +1259,195 @@
     backBtn.click();
   });
 
+  // ---------- Mode 2: sub-mode switcher + applySubModeUI ----------
+  function applySubModeUI() {
+    const panel  = document.getElementById('countPanel');
+    const check  = document.getElementById('checkCountBtn');
+    const three  = document.getElementById('chipsRackThree');
+    const ramp   = document.getElementById('chipsRackRamp');
+
+    if (countSubMode === 'hidden') {
+      panel.classList.add('hidden-mode');
+      check.classList.remove('hidden');
+    } else {
+      panel.classList.remove('hidden-mode');
+      check.classList.add('hidden');
+    }
+
+    if (countSubMode === 'bet-sizing') {
+      three.classList.add('hidden');
+      ramp.classList.remove('hidden');
+    } else if (currentMode === 2) {
+      three.classList.remove('hidden');
+      ramp.classList.add('hidden');
+    } else {
+      three.classList.add('hidden');
+      ramp.classList.add('hidden');
+    }
+  }
+
+  document.querySelectorAll('.submode-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (phase !== 'idle' && phase !== 'over') return;
+      document.querySelectorAll('.submode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      countSubMode = btn.dataset.submode;
+      applySubModeUI();
+      resetShoeAndCount();
+      clearBetReview();
+      mode2HandsPlayed = 0;
+    });
+  });
+
+  // ---------- Mode 2: Check My Count (3s reveal) ----------
+  let checkRevealTimer = null;
+  document.getElementById('checkCountBtn').addEventListener('click', () => {
+    const panel = document.getElementById('countPanel');
+    const btn = document.getElementById('checkCountBtn');
+    panel.classList.remove('hidden-mode');
+    btn.classList.add('revealed');
+    if (checkRevealTimer) clearTimeout(checkRevealTimer);
+    checkRevealTimer = setTimeout(() => {
+      if (countSubMode === 'hidden') {
+        panel.classList.add('hidden-mode');
+        btn.classList.remove('revealed');
+      }
+    }, 3000);
+  });
+
+  // ---------- Mode 2: bet review ----------
+  function chipLabelForReview(b) {
+    return ({
+      skip: 'Skipped', low: 'Bet low', high: 'Bet high',
+      '1x': 'Bet 1×', '2x': 'Bet 2×', '4x': 'Bet 4×', '8x': 'Bet 8×'
+    })[b] || b;
+  }
+
+  function optimalChip(tc) {
+    if (countSubMode === 'bet-sizing') {
+      if (tc <= -1) return 'skip';
+      if (tc < 2)  return '1x';
+      if (tc < 3)  return '2x';
+      if (tc < 4)  return '4x';
+      return '8x';
+    }
+    if (tc <= -1) return 'skip';
+    if (tc < 2) return 'low';
+    return 'high';
+  }
+
+  function renderBetReview(chipChoice, tc) {
+    const optimal = optimalChip(tc);
+    const correct = chipChoice === optimal;
+    const icon = correct ? '✓' : '✗';
+    const cls  = correct ? 'correct' : 'miss';
+    const choiceLabel  = chipLabelForReview(chipChoice);
+    const optimalLabel = chipLabelForReview(optimal);
+    const line = correct
+      ? `${icon} ${choiceLabel} — TC was ${formatTC(tc)}, that was the call`
+      : `${icon} ${choiceLabel} — TC was ${formatTC(tc)}, ${optimalLabel.toLowerCase()} was the call`;
+
+    const html = `
+      <div class="review-title">Bet Review</div>
+      <div class="review-line ${cls}">${line}</div>
+    `;
+    const el = document.getElementById('roundReview');
+    el.innerHTML = html;
+    el.classList.add('show');
+  }
+
+  function clearBetReview() {
+    const el = document.getElementById('roundReview');
+    el.innerHTML = '';
+    el.classList.remove('show');
+  }
+
+  // ---------- Mode 2: chip click == deal trigger; skipped hand path ----------
+  async function handleSkippedHand() {
+    renderBetReview(pendingBetChoice, pendingBetTC);
+    mode2HandsPlayed++;
+  }
+
+  async function onMode2ChipClick(betChoice) {
+    if (currentMode !== 2) return;
+    if (phase !== 'idle' && phase !== 'over') return;
+    if (settling) return;
+    if (maybeShowQuiz()) return;
+    clearBetReview();
+    pendingBetChoice = betChoice;
+    pendingBetTC = getTrueCount();
+    if (betChoice === 'skip') {
+      await handleSkippedHand();
+    } else {
+      await dealNewHand();
+    }
+  }
+
+  document.querySelectorAll('.mode2-chips .chip').forEach((c) => {
+    c.addEventListener('click', () => onMode2ChipClick(c.dataset.bet));
+  });
+
+  // ---------- Mode 2: quiz modal ----------
+  function updateQuizValueLabel() {
+    document.getElementById('quizValue').textContent =
+      quizGuess > 0 ? `+${quizGuess}` : `${quizGuess}`;
+  }
+
+  function resetQuiz() {
+    quizGuess = 0;
+    quizPhase = 'guess';
+    updateQuizValueLabel();
+    document.getElementById('quizResult').classList.add('hidden');
+    document.getElementById('quizSubmit').textContent = 'Submit';
+  }
+
+  function maybeShowQuiz() {
+    if (currentMode !== 2 || countSubMode !== 'hidden') return false;
+    if (mode2HandsPlayed < 6) return false;
+    resetQuiz();
+    document.getElementById('quizModal').classList.remove('hidden');
+    return true;
+  }
+
+  document.getElementById('quizMinus').addEventListener('click', () => {
+    if (quizPhase !== 'guess') return;
+    quizGuess--;
+    updateQuizValueLabel();
+  });
+  document.getElementById('quizPlus').addEventListener('click', () => {
+    if (quizPhase !== 'guess') return;
+    quizGuess++;
+    updateQuizValueLabel();
+  });
+  document.getElementById('quizSkip').addEventListener('click', () => {
+    document.getElementById('quizModal').classList.add('hidden');
+    mode2HandsPlayed = 0;
+    resetQuiz();
+  });
+  document.getElementById('quizSubmit').addEventListener('click', () => {
+    if (quizPhase === 'guess') {
+      const actual = runningCount;
+      const resultEl = document.getElementById('quizResult');
+      if (quizGuess === actual) {
+        resultEl.textContent = `✓ Spot on. RC was ${actual >= 0 ? '+' : ''}${actual}.`;
+        resultEl.className = 'quiz-result correct';
+      } else {
+        resultEl.textContent = `✗ Actual RC was ${actual >= 0 ? '+' : ''}${actual}. You guessed ${quizGuess >= 0 ? '+' : ''}${quizGuess}.`;
+        resultEl.className = 'quiz-result miss';
+      }
+      quizPhase = 'reveal';
+      document.getElementById('quizSubmit').textContent = 'Continue';
+    } else {
+      document.getElementById('quizModal').classList.add('hidden');
+      mode2HandsPlayed = 0;
+      resetQuiz();
+    }
+  });
+
   document.getElementById('tutorialSkip').addEventListener('click', hideTutorial);
   document.getElementById('tutorialNext').addEventListener('click', () => {
-    if (tutorialIndex < TUTORIAL_LESSONS.length - 1) {
+    const lessons = activeTutorialLessons();
+    if (tutorialIndex < lessons.length - 1) {
       tutorialIndex++;
       renderTutorial();
     } else {
@@ -1021,6 +1457,7 @@
 
   document.getElementById('infoBtn').addEventListener('click', () => {
     if (currentMode === 1) showTutorial();
+    else if (currentMode === 2) showCountTutorial();
   });
 
   // ---------- init + deep-link ----------
@@ -1061,6 +1498,30 @@
             updateCurrentBetUI();
           }
           else if (action === 'reset')  resetBankroll();
+          // Mode 2 test affordances
+          else if (action.startsWith('tut')) {
+            const idx = parseInt(action.slice(3), 10);
+            if (Number.isFinite(idx)) {
+              tutorialIndex = idx;
+              document.getElementById('tutorialModal').classList.remove('hidden');
+              renderTutorial();
+            }
+          }
+          else if (action === 'subVisible' || action === 'subHidden' || action === 'subBet') {
+            const targetSub = action === 'subVisible' ? 'visible'
+                            : action === 'subHidden' ? 'hidden' : 'bet-sizing';
+            countSubMode = targetSub;
+            document.querySelectorAll('.submode-btn').forEach(b => {
+              b.classList.toggle('active', b.dataset.submode === targetSub);
+            });
+            applySubModeUI();
+            resetShoeAndCount();
+            clearBetReview();
+            mode2HandsPlayed = 0;
+          }
+          else if (action.startsWith('m2chip')) {
+            await onMode2ChipClick(action.slice(6));
+          }
           await sleep(250);
         }
       }, 150);

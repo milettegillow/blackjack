@@ -1308,3 +1308,351 @@ body::before {
   padding-top: 8px;
   border-top: 1px solid rgba(212, 175, 55, 0.15);
 }
+
+/* ============ MODE 2: SUB-MODE SWITCHER ============ */
+.submode-switcher {
+  display: flex;
+  gap: 0;
+  margin: 0 auto 8px;
+  width: fit-content;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 100px;
+  padding: 3px;
+}
+
+.submode-switcher.hidden { display: none; }
+
+.submode-btn {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--ink-faint);
+  font-family: 'Lora', Georgia, serif;
+  font-size: 12px;
+  padding: 6px 14px;
+  border-radius: 100px;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+}
+
+.submode-btn.active {
+  background: linear-gradient(180deg, rgba(212,175,55,0.25), rgba(212,175,55,0.1));
+  color: var(--gold);
+  box-shadow: inset 0 0 0 1px rgba(212, 175, 55, 0.4);
+}
+
+/* ============ MODE 2: COUNT BADGE ON DEALT CARDS ============ */
+@keyframes countBadgePop {
+  0%   { opacity: 0; transform: scale(0.6) translateY(6px); }
+  20%  { opacity: 1; transform: scale(1) translateY(0); }
+  80%  { opacity: 1; transform: scale(1) translateY(0); }
+  100% { opacity: 0; transform: scale(1) translateY(-6px); }
+}
+
+.count-badge {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  min-width: 26px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  pointer-events: none;
+  z-index: 10;
+  animation: countBadgePop 1.8s ease forwards;
+}
+
+.count-badge.plus  { background: #1f4a36; color: #b7e4c7; border: 1px solid #6ee7b7; }
+.count-badge.zero  { background: #2c3e50; color: #aab8c2; border: 1px solid #5d7290; }
+.count-badge.minus { background: #4a1f1f; color: #f0c0c0; border: 1px solid #e57373; }
+
+/* ============ MODE 2: COUNT PANEL HIDDEN-MODE MASK + CHECK BUTTON ============ */
+.count-panel.hidden-mode .cp-label,
+.count-panel.hidden-mode .cp-hero,
+.count-panel.hidden-mode .cp-secondary,
+.count-panel.hidden-mode .cp-divider,
+.count-panel.hidden-mode .advantage {
+  visibility: hidden;
+}
+
+.count-panel.hidden-mode::after {
+  content: "Count Hidden";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 30px; /* leave room for the Check button */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--ink-faint);
+  letter-spacing: 0.1em;
+}
+
+.check-count-btn {
+  display: block;
+  margin: 8px auto 0;
+  appearance: none;
+  background: transparent;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  color: var(--gold);
+  font-family: 'Lora', Georgia, serif;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  padding: 4px 10px;
+  border-radius: 100px;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+}
+
+.check-count-btn:hover { background: rgba(212, 175, 55, 0.1); }
+.check-count-btn.hidden { display: none; }
+.check-count-btn.revealed { background: rgba(212, 175, 55, 0.15); }
+
+/* ============ MODE 2: RAMP CHIP COLORS ============ */
+.chip-ramp-1 { --chip-color: #1e7f3f; }
+.chip-ramp-2 { --chip-color: #2563eb; }
+.chip-ramp-4 { --chip-color: #b91c2c; }
+.chip-ramp-8 {
+  --chip-color: #1a1a1a;
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.4),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.25),
+    inset 0 2px 3px rgba(212, 175, 55, 0.4);
+}
+
+/* ============ MODE 2: QUIZ MODAL ============ */
+.quiz-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.quiz-modal.hidden { display: none; }
+
+.quiz-input-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 16px 0 14px;
+}
+
+.quiz-step {
+  appearance: none;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  color: var(--gold);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 18px;
+  font-family: 'JetBrains Mono', monospace;
+  cursor: pointer;
+}
+
+.quiz-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--ink);
+  min-width: 60px;
+  text-align: center;
+}
+
+.quiz-result {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 13px;
+  text-align: center;
+  margin-bottom: 14px;
+  padding: 8px 12px;
+  border-radius: 3px;
+}
+
+.quiz-result.hidden { display: none; }
+.quiz-result.correct { background: rgba(110,231,183,0.1); color: #6ee7b7; border: 1px solid rgba(110,231,183,0.3); }
+.quiz-result.miss    { background: rgba(240,160,160,0.1); color: #f0a0a0; border: 1px solid rgba(240,160,160,0.3); }
+
+/* ============ MODE 2: TUTORIAL VISUALS ============ */
+.tut-value.plus  { color: #6ee7b7; }
+.tut-value.zero  { color: #94a3b8; }
+.tut-value.minus { color: #f0a0a0; }
+
+.hilo-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hilo-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.hilo-cards {
+  display: flex;
+}
+
+.hilo-cards img {
+  width: 32px;
+  height: 45px;
+  margin-left: -14px;
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.hilo-cards img:first-child { margin-left: 0; }
+
+.hilo-label {
+  margin-left: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 100px;
+}
+
+.hilo-group.plus  .hilo-label { background: rgba(110,231,183,0.15); color: #6ee7b7; }
+.hilo-group.zero  .hilo-label { background: rgba(148,163,184,0.15); color: #94a3b8; }
+.hilo-group.minus .hilo-label { background: rgba(240,160,160,0.15); color: #f0a0a0; }
+
+.rc-sequence {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.rc-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.rc-step img { width: 36px; height: 51px; border-radius: 2px; }
+
+.rc-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.rc-val.plus  { color: #6ee7b7; }
+.rc-val.zero  { color: #94a3b8; }
+.rc-val.minus { color: #f0a0a0; }
+
+.rc-total {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--gold);
+  letter-spacing: 0.05em;
+}
+
+.tc-calc {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+}
+
+.tc-piece { text-align: center; }
+
+.tc-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.tc-piece.tc-result .tc-num { color: var(--gold); }
+
+.tc-cap {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 10px;
+  color: var(--ink-faint);
+  letter-spacing: 0.05em;
+}
+
+.tc-op {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  color: var(--ink-faint);
+}
+
+.edge-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: 'Lora', Georgia, serif;
+  font-size: 12px;
+}
+
+.edge-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 12px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.edge-label  { color: var(--ink-dim); font-family: 'JetBrains Mono', monospace; }
+.edge-house  { color: #f0a0a0; }
+.edge-even   { color: #94a3b8; }
+.edge-player { color: #6ee7b7; font-weight: 600; }
+
+.ramp {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ramp-step {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.3);
+  font-family: 'Lora', Georgia, serif;
+  font-size: 12px;
+}
+
+.ramp-step.ramp-top { background: rgba(212, 175, 55, 0.15); }
+.ramp-tc  { color: var(--ink-dim); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+.ramp-bet { color: var(--gold); font-family: 'Playfair Display', serif; font-weight: 700; }
+
+.submode-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: 'Lora', Georgia, serif;
+  font-size: 12px;
+}
+
+.sp-row {
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+  color: var(--ink-dim);
+}
+
+.sp-row strong { color: var(--gold); font-weight: 600; }

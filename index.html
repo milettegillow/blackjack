@@ -101,6 +101,12 @@
           <button class="icon-btn" id="infoBtn" aria-label="Help">?</button>
         </div>
 
+        <div class="submode-switcher hidden" id="submodeSwitcher">
+          <button class="submode-btn active" data-submode="visible">Visible</button>
+          <button class="submode-btn" data-submode="hidden">Hidden</button>
+          <button class="submode-btn" data-submode="bet-sizing">Bet Sizing</button>
+        </div>
+
         <div class="count-panel hidden" id="countPanel">
           <div class="cp-label">True Count</div>
           <div class="cp-hero" id="trueCount">0.0</div>
@@ -110,6 +116,7 @@
           </div>
           <div class="cp-divider"></div>
           <div class="advantage" id="advantage">NEUTRAL</div>
+          <button class="check-count-btn hidden" id="checkCountBtn">Check My Count</button>
         </div>
 
         <div class="deck-indicator hidden" id="deckIndicator">
@@ -170,9 +177,9 @@
             </button>
           </div>
 
-          <div class="chip-rack hidden" id="chipRackM2">
+          <div class="chip-rack mode2-chips hidden" id="chipsRackThree">
             <div class="chip-row">
-              <button class="chip chip-skip" data-bet="0">
+              <button class="chip chip-skip" data-bet="skip">
                 <span class="chip-label">Skip</span>
               </button>
               <button class="chip chip-low" data-bet="low">
@@ -180,6 +187,26 @@
               </button>
               <button class="chip chip-high" data-bet="high">
                 <span class="chip-label">High</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="chip-rack mode2-chips hidden" id="chipsRackRamp">
+            <div class="chip-row">
+              <button class="chip chip-skip" data-bet="skip">
+                <span class="chip-label">Skip</span>
+              </button>
+              <button class="chip chip-ramp-1" data-bet="1x">
+                <span class="chip-label">1×</span>
+              </button>
+              <button class="chip chip-ramp-2" data-bet="2x">
+                <span class="chip-label">2×</span>
+              </button>
+              <button class="chip chip-ramp-4" data-bet="4x">
+                <span class="chip-label">4×</span>
+              </button>
+              <button class="chip chip-ramp-8" data-bet="8x">
+                <span class="chip-label">8×</span>
               </button>
             </div>
           </div>
@@ -242,6 +269,24 @@
             <div class="tutorial-actions">
               <button class="tutorial-skip" id="tutorialSkip">Skip</button>
               <button class="tutorial-next" id="tutorialNext">Next</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="quiz-modal hidden" id="quizModal">
+          <div class="tutorial-backdrop"></div>
+          <div class="tutorial-card">
+            <div class="tutorial-progress">Count Check</div>
+            <h2 class="tutorial-title">Running Count?</h2>
+            <div class="quiz-input-row">
+              <button class="quiz-step" id="quizMinus">−</button>
+              <div class="quiz-value" id="quizValue">0</div>
+              <button class="quiz-step" id="quizPlus">+</button>
+            </div>
+            <div class="quiz-result hidden" id="quizResult"></div>
+            <div class="tutorial-actions">
+              <button class="tutorial-skip" id="quizSkip">Skip</button>
+              <button class="tutorial-next" id="quizSubmit">Submit</button>
             </div>
           </div>
         </div>
