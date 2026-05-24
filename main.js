@@ -10,11 +10,15 @@
   const NUM_DECKS = 6;
   const RESHUFFLE_THRESHOLD = 0.25;
 
+  // ---------- state ----------
   let shoe = [];
   let initialShoeSize = 0;
   let dealerHand = [];
-  let playerHand = [];
+  let playerHands = [];
+  let activeHandIndex = 0;
+  let phase = 'idle'; // 'idle' | 'dealing' | 'player' | 'dealer' | 'over'
 
+  // ---------- DOM refs ----------
   const home = document.getElementById('screen-home');
   const game = document.getElementById('gameScreen');
   const topMode = document.getElementById('topMode');
@@ -28,8 +32,13 @@
   const playerHandEl = document.getElementById('playerHand');
   const dealerScoreEl = document.getElementById('dealerScore');
   const playerScoreEl = document.getElementById('playerScore');
+  const handIndicatorEl = document.getElementById('handIndicator');
+  const messageEl = document.getElementById('message');
   const dealBtn = document.getElementById('dealBtn');
   const hitBtn = document.getElementById('hitBtn');
+  const standBtn = document.getElementById('standBtn');
+  const doubleBtn = document.getElementById('doubleBtn');
+  const splitBtn = document.getElementById('splitBtn');
 
   // ---------- shoe ----------
   function buildShoe(numDecks = NUM_DECKS) {
@@ -97,6 +106,16 @@
     });
   }
 
+  async function renderActiveHand() {
+    playerHandEl.innerHTML = '';
+    const hand = playerHands[activeHandIndex];
+    if (!hand) return;
+    for (const card of hand.cards) {
+      playerHandEl.appendChild(renderCard(card));
+    }
+    layoutHand(playerHandEl);
+  }
+
   // ---------- evaluation ----------
   function rankValue(r) {
     if (r === 'A') return 11;
@@ -120,11 +139,12 @@
   }
 
   function updateScores() {
-    if (playerHand.length === 0) {
+    const activeHand = playerHands[activeHandIndex];
+    if (!activeHand || activeHand.cards.length === 0) {
       playerScoreEl.textContent = '';
       playerScoreEl.className = 'hand-score';
     } else {
-      const ev = evaluateHand(playerHand);
+      const ev = evaluateHand(activeHand.cards);
       playerScoreEl.textContent = ev.total;
       playerScoreEl.className = 'hand-score';
       if (ev.isBlackjack) playerScoreEl.classList.add('blackjack');
@@ -133,8 +153,16 @@
 
     if (dealerHand.length === 0) {
       dealerScoreEl.textContent = '';
+      dealerScoreEl.className = 'hand-score';
+    } else if (phase === 'dealer' || phase === 'over') {
+      const ev = evaluateHand(dealerHand);
+      dealerScoreEl.textContent = ev.total;
+      dealerScoreEl.className = 'hand-score';
+      if (ev.isBust) dealerScoreEl.classList.add('bust');
+      else if (ev.isBlackjack) dealerScoreEl.classList.add('blackjack');
     } else {
       dealerScoreEl.textContent = rankValue(dealerHand[0].rank);
+      dealerScoreEl.className = 'hand-score';
     }
   }
 
@@ -143,7 +171,64 @@
     if (el) el.textContent = `${shoe.length} / ${initialShoeSize}`;
   }
 
-  // ---------- deal ----------
+  // ---------- phase + buttons ----------
+  function setPhase(p) {
+    phase = p;
+    updateButtonStates();
+    updateScores();
+  }
+
+  function canSplit(hand) {
+    if (hand.cards.length !== 2) return false;
+    if (playerHands.length >= 4) return false;
+    return rankValue(hand.cards[0].rank) === rankValue(hand.cards[1].rank);
+  }
+
+  function updateButtonStates() {
+    dealBtn.disabled = !(phase === 'idle' || phase === 'over');
+    if (phase !== 'player') {
+      hitBtn.disabled = standBtn.disabled = doubleBtn.disabled = splitBtn.disabled = true;
+      return;
+    }
+    const hand = playerHands[activeHandIndex];
+    hitBtn.disabled = false;
+    standBtn.disabled = false;
+    doubleBtn.disabled = !(hand && hand.cards.length === 2);
+    splitBtn.disabled = !canSplit(hand);
+  }
+
+  // ---------- message + hand indicator ----------
+  function showMessage(text, kind) {
+    messageEl.textContent = text;
+    messageEl.className = 'message show ' + kind;
+  }
+
+  function hideMessage() {
+    messageEl.className = 'message';
+    messageEl.textContent = '';
+  }
+
+  function updateHandIndicator() {
+    if (playerHands.length <= 1) {
+      handIndicatorEl.classList.add('hidden');
+      handIndicatorEl.textContent = '';
+    } else {
+      handIndicatorEl.classList.remove('hidden');
+      handIndicatorEl.textContent = `Hand ${activeHandIndex + 1} of ${playerHands.length}`;
+    }
+  }
+
+  function hideHandIndicator() {
+    handIndicatorEl.classList.add('hidden');
+    handIndicatorEl.textContent = '';
+  }
+
+  // ---------- hand makers ----------
+  function makeHand() {
+    return { cards: [], stood: false, doubled: false, bust: false, blackjack: false };
+  }
+
+  // ---------- deal flow ----------
   function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
   async function dealCardTo(handZone, card, faceDown = false) {
@@ -156,22 +241,25 @@
   }
 
   async function dealNewHand() {
+    if (phase !== 'idle' && phase !== 'over') return;
+
     dealerHandEl.innerHTML = '';
     playerHandEl.innerHTML = '';
     dealerHand = [];
-    playerHand = [];
-    updateScores();
+    playerHands = [makeHand()];
+    activeHandIndex = 0;
+    hideMessage();
+    hideHandIndicator();
 
-    dealBtn.disabled = true;
-    hitBtn.disabled = true;
+    setPhase('dealing');
 
-    const c1 = drawCard(); playerHand.push(c1);
+    const c1 = drawCard(); playerHands[0].cards.push(c1);
     await dealCardTo(playerHandEl, c1);
 
     const c2 = drawCard(); dealerHand.push(c2);
     await dealCardTo(dealerHandEl, c2);
 
-    const c3 = drawCard(); playerHand.push(c3);
+    const c3 = drawCard(); playerHands[0].cards.push(c3);
     await dealCardTo(playerHandEl, c3);
 
     const c4 = drawCard(); dealerHand.push(c4);
@@ -179,23 +267,204 @@
 
     updateScores();
     updateDeckCount();
-    dealBtn.disabled = false;
-    hitBtn.disabled = false;
+
+    const pEval = evaluateHand(playerHands[0].cards);
+    const dEval = evaluateHand(dealerHand);
+    if (pEval.isBlackjack || dEval.isBlackjack) {
+      setPhase('dealer');
+      await revealDealerHole();
+      if (pEval.isBlackjack && dEval.isBlackjack) endHand('push');
+      else if (pEval.isBlackjack) endHand('blackjack');
+      else endHand('lose');
+      return;
+    }
+
+    setPhase('player');
   }
 
+  // ---------- player actions ----------
+  async function playerHit() {
+    if (phase !== 'player') return;
+    const hand = playerHands[activeHandIndex];
+    const c = drawCard();
+    hand.cards.push(c);
+    await dealCardTo(playerHandEl, c);
+    updateScores();
+    updateDeckCount();
+
+    const ev = evaluateHand(hand.cards);
+    if (ev.isBust) { hand.bust = true; await advanceHand(); }
+    else if (ev.total === 21) await advanceHand();
+    else updateButtonStates();
+  }
+
+  async function playerStand() {
+    if (phase !== 'player') return;
+    playerHands[activeHandIndex].stood = true;
+    await advanceHand();
+  }
+
+  async function playerDouble() {
+    if (phase !== 'player') return;
+    const hand = playerHands[activeHandIndex];
+    if (hand.cards.length !== 2) return;
+    hand.doubled = true;
+    const c = drawCard();
+    hand.cards.push(c);
+    await dealCardTo(playerHandEl, c);
+    updateScores();
+    updateDeckCount();
+    const ev = evaluateHand(hand.cards);
+    if (ev.isBust) hand.bust = true;
+    await advanceHand();
+  }
+
+  async function playerSplit() {
+    if (phase !== 'player') return;
+    const hand = playerHands[activeHandIndex];
+    if (!canSplit(hand)) return;
+
+    const second = hand.cards.pop();
+    const newHand = makeHand();
+    newHand.cards.push(second);
+    playerHands.splice(activeHandIndex + 1, 0, newHand);
+
+    await renderActiveHand(); // re-render current hand with just 1 card
+
+    const c = drawCard();
+    hand.cards.push(c);
+    await dealCardTo(playerHandEl, c);
+
+    updateScores();
+    updateDeckCount();
+    updateHandIndicator();
+
+    // Split Aces: one card only, auto-stand
+    if (hand.cards[0].rank === 'A') {
+      hand.stood = true;
+      await advanceHand();
+      return;
+    }
+
+    updateButtonStates();
+  }
+
+  // ---------- advance + dealer ----------
+  async function advanceHand() {
+    if (activeHandIndex + 1 < playerHands.length) {
+      activeHandIndex++;
+      updateHandIndicator();
+      const next = playerHands[activeHandIndex];
+
+      if (next.cards.length === 1) {
+        await renderActiveHand();
+        const c = drawCard();
+        next.cards.push(c);
+        await dealCardTo(playerHandEl, c);
+
+        if (next.cards[0].rank === 'A') {
+          next.stood = true;
+          await advanceHand();
+          return;
+        }
+      } else {
+        await renderActiveHand();
+      }
+
+      updateScores();
+      updateDeckCount();
+      setPhase('player');
+      return;
+    }
+
+    await dealerPlay();
+  }
+
+  async function dealerPlay() {
+    setPhase('dealer');
+    await revealDealerHole();
+
+    const allBusted = playerHands.every(h => h.bust);
+
+    if (!allBusted) {
+      while (true) {
+        const ev = evaluateHand(dealerHand);
+        if (ev.total > 21) break;
+        if (ev.total > 17) break;
+        if (ev.total === 17 && !ev.soft) break;
+        await sleep(450);
+        const c = drawCard();
+        dealerHand.push(c);
+        await dealCardTo(dealerHandEl, c);
+        updateScores();
+        updateDeckCount();
+      }
+    }
+
+    resolveHands();
+  }
+
+  async function revealDealerHole() {
+    const flipped = dealerHandEl.querySelector('.card.flipped');
+    if (flipped) {
+      flipped.classList.remove('flipped');
+      await sleep(550);
+    }
+    updateScores();
+  }
+
+  // ---------- resolution ----------
+  function resolveHands() {
+    const dEval = evaluateHand(dealerHand);
+    const results = playerHands.map(h => {
+      if (h.bust) return 'lose';
+      if (dEval.isBust) return 'win';
+      const pEval = evaluateHand(h.cards);
+      if (pEval.total > dEval.total) return 'win';
+      if (pEval.total < dEval.total) return 'lose';
+      return 'push';
+    });
+
+    if (playerHands.length === 1) {
+      endHand(results[0]);
+    } else {
+      const wins = results.filter(r => r === 'win').length;
+      const losses = results.filter(r => r === 'lose').length;
+      const pushes = results.filter(r => r === 'push').length;
+      const parts = [];
+      if (wins) parts.push(`${wins}W`);
+      if (losses) parts.push(`${losses}L`);
+      if (pushes) parts.push(`${pushes}P`);
+      showMessage(parts.join(' · '), 'mixed');
+      setPhase('over');
+    }
+  }
+
+  function endHand(result) {
+    let text, kind;
+    if (result === 'blackjack') { text = 'Blackjack!'; kind = 'win'; }
+    else if (result === 'win')  { text = 'You Win';   kind = 'win'; }
+    else if (result === 'lose') { text = 'Dealer Wins'; kind = 'lose'; }
+    else if (result === 'push') { text = 'Push';      kind = 'push'; }
+    showMessage(text, kind);
+    setPhase('over');
+  }
+
+  // ---------- reset + routing ----------
   function resetGameState() {
     shoe = buildShoe();
     initialShoeSize = shoe.length;
     dealerHand = [];
-    playerHand = [];
+    playerHands = [];
+    activeHandIndex = 0;
     dealerHandEl.innerHTML = '';
     playerHandEl.innerHTML = '';
-    updateScores();
+    hideMessage();
+    hideHandIndicator();
+    setPhase('idle');
     updateDeckCount();
-    hitBtn.disabled = true;
   }
 
-  // ---------- screen routing ----------
   function showHome() {
     resetGameState();
     home.classList.remove('hidden');
@@ -225,31 +494,34 @@
   });
 
   backBtn.addEventListener('click', showHome);
-
   dealBtn.addEventListener('click', dealNewHand);
+  hitBtn.addEventListener('click', playerHit);
+  standBtn.addEventListener('click', playerStand);
+  doubleBtn.addEventListener('click', playerDouble);
+  splitBtn.addEventListener('click', playerSplit);
 
-  hitBtn.addEventListener('click', async () => {
-    if (playerHand.length === 0) return;
-    const c = drawCard();
-    playerHand.push(c);
-    await dealCardTo(playerHandEl, c);
-    updateScores();
-    updateDeckCount();
-  });
-
-  dealerHandEl.addEventListener('click', (e) => {
-    const card = e.target.closest('.card.flipped');
-    if (card) card.classList.remove('flipped');
-  });
-
-  // ---------- init ----------
+  // ---------- init + deep-link ----------
   shoe = buildShoe();
   initialShoeSize = shoe.length;
   updateDeckCount();
 
-  const hash = location.hash.match(/^#mode-([123])(-deal)?$/);
-  if (hash) {
-    showGame(Number(hash[1]));
-    if (hash[2]) setTimeout(dealNewHand, 100);
+  // URL hash supports test sequences: #mode-N-<action>-<action>-...
+  // Actions: deal, hit, stand, double, split
+  const parts = location.hash.replace(/^#/, '').split('-');
+  if (parts[0] === 'mode' && /^[123]$/.test(parts[1] || '')) {
+    showGame(Number(parts[1]));
+    const actions = parts.slice(2);
+    if (actions.length) {
+      setTimeout(async () => {
+        for (const action of actions) {
+          if (action === 'deal') await dealNewHand();
+          else if (action === 'hit') await playerHit();
+          else if (action === 'stand') await playerStand();
+          else if (action === 'double') await playerDouble();
+          else if (action === 'split') await playerSplit();
+          await sleep(250);
+        }
+      }, 150);
+    }
   }
 })();

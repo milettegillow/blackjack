@@ -589,7 +589,7 @@ body::before {
   transform: translate(-50%, -50%);
   font-family: 'Playfair Display', Georgia, serif;
   font-weight: 700;
-  font-size: 22px;
+  font-size: 26px;
   letter-spacing: 0.02em;
   background: linear-gradient(180deg,
     #f4d77a 0%,
@@ -601,10 +601,45 @@ body::before {
   -webkit-background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
   pointer-events: none;
   text-align: center;
   white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 6;
+}
+
+.message.show { opacity: 1; }
+
+.message.win {
+  background: linear-gradient(180deg, #d1fae5 0%, #34d399 50%, #10b981 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  filter:
+    drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5))
+    drop-shadow(0 0 14px rgba(52, 211, 153, 0.45));
+}
+
+.message.lose {
+  background: linear-gradient(180deg, #fecaca 0%, #fb7185 50%, #e11d48 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  filter:
+    drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5))
+    drop-shadow(0 0 14px rgba(251, 113, 133, 0.45));
+}
+
+/* .message.push and .message.mixed use the default gold gradient */
+
+/* hand-of-split indicator */
+.hand-indicator {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  text-align: center;
 }
 
 /* money row (Test Yourself): bankroll + current bet on one line */
@@ -704,6 +739,7 @@ body::before {
 .deal-btn-wrap {
   display: flex;
   justify-content: center;
+  margin-top: 18px;
 }
 
 .deal-btn {
