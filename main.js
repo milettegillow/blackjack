@@ -1315,16 +1315,21 @@
       btn.classList.add('active');
       countSubMode = btn.dataset.submode;
       applySubModeUI();
-      resetShoeAndCount();
-      resetGameState();
+
       clearChipSelection();
       pendingBetChoice = null;
+
+      const rev = document.getElementById('roundReview');
+      if (rev) { rev.innerHTML = ''; rev.classList.remove('show'); }
+
       countRevealed = false;
       const ccb = document.getElementById('checkCountBtn');
       if (ccb) {
         ccb.textContent = 'Check my count';
         ccb.classList.remove('revealed');
       }
+
+      updateButtonStates();
     });
   });
 
@@ -1586,14 +1591,8 @@
           else if (action === 'subVisible' || action === 'subHidden' || action === 'subBet') {
             const targetSub = action === 'subVisible' ? 'visible'
                             : action === 'subHidden' ? 'hidden' : 'bet-sizing';
-            countSubMode = targetSub;
-            document.querySelectorAll('.submode-btn').forEach(b => {
-              b.classList.toggle('active', b.dataset.submode === targetSub);
-            });
-            applySubModeUI();
-            resetShoeAndCount();
-            clearBetReview();
-            mode2HandsPlayed = 0;
+            const matchBtn = document.querySelector(`.submode-btn[data-submode="${targetSub}"]`);
+            if (matchBtn) matchBtn.click();
           }
           else if (action.startsWith('m2chip')) {
             await onMode2ChipClick(action.slice(6));
