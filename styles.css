@@ -780,6 +780,18 @@ body::before {
   gap: 10px;
   padding: 6px 0;
   margin-bottom: 6px;
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+.chip-rack.disabled,
+.money-row.disabled {
+  opacity: 0.35;
+  filter: saturate(0.5);
+  pointer-events: none;
+}
+
+.money-row {
+  transition: opacity 0.3s ease, filter 0.3s ease;
 }
 
 .chip-row {
@@ -926,9 +938,9 @@ body::before {
 
 /* ============ BANKRUPT MODAL ============ */
 .bankrupt-modal {
-  position: absolute;
+  position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -245,7 +245,6 @@
       updateBankrollUI();
       updateCurrentBetUI();
       settling = false;
-      showChipRack();
       updateButtonStates();
       if (currentMode === 3 && bankroll < 25) showBankruptModal();
     }, 2400);
@@ -263,15 +262,11 @@
     modal.setAttribute('aria-hidden', 'true');
   }
 
-  // ---------- chip rack visibility ----------
-  function hideChipRack() {
-    if (currentMode === 3) chipRackM3.classList.add('hidden');
-    if (currentMode === 2) chipRackM2.classList.add('hidden');
-  }
-
-  function showChipRack() {
-    if (currentMode === 3) chipRackM3.classList.remove('hidden');
-    if (currentMode === 2) chipRackM2.classList.remove('hidden');
+  // ---------- chip rack disabled state ----------
+  function setChipRackDisabled(disabled) {
+    chipRackM2.classList.toggle('disabled', disabled);
+    chipRackM3.classList.toggle('disabled', disabled);
+    moneyRow.classList.toggle('disabled', disabled);
   }
 
   // ---------- phase + buttons ----------
@@ -279,6 +274,7 @@
     phase = p;
     updateButtonStates();
     updateScores();
+    setChipRackDisabled(phase === 'dealing' || phase === 'player' || phase === 'dealer');
   }
 
   function canSplit(hand) {
@@ -366,7 +362,6 @@
     activeHandIndex = 0;
 
     setPhase('dealing');
-    hideChipRack();
 
     const c1 = drawCard(); playerHands[0].cards.push(c1);
     await dealCardTo(playerHandEl, c1);
@@ -575,7 +570,6 @@
       if (pushes) parts.push(`${pushes}P`);
       showMessage(parts.join(' · '), 'mixed');
       setPhase('over');
-      if (currentMode !== 3) showChipRack();
     }
   }
 
@@ -587,7 +581,6 @@
     else if (result === 'push') { text = 'Push';      kind = 'push'; }
     showMessage(text, kind);
     setPhase('over');
-    if (currentMode !== 3) showChipRack();
   }
 
   // ---------- reset + routing ----------
