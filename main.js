@@ -9,6 +9,7 @@
   const SUITS = ['C','D','H','S'];
   const NUM_DECKS = 6;
   const RESHUFFLE_THRESHOLD = 0.25;
+  const STARTING_BANKROLL = 1000;
 
   // ---------- state ----------
   let shoe = [];
@@ -16,7 +17,10 @@
   let dealerHand = [];
   let playerHands = [];
   let activeHandIndex = 0;
-  let phase = 'idle'; // 'idle' | 'dealing' | 'player' | 'dealer' | 'over'
+  let phase = 'idle';            // 'idle' | 'dealing' | 'player' | 'dealer' | 'over'
+  let currentMode = null;        // 1, 2, 3, or null on home
+  let bankroll = STARTING_BANKROLL;
+  let currentBet = 0;
 
   // ---------- DOM refs ----------
   const home = document.getElementById('screen-home');
@@ -171,6 +175,35 @@
     if (el) el.textContent = `${shoe.length} / ${initialShoeSize}`;
   }
 
+  // ---------- bankroll / bet ----------
+  function resetBankroll() {
+    bankroll = STARTING_BANKROLL;
+    currentBet = 0;
+    updateBankrollUI();
+    updateCurrentBetUI();
+  }
+
+  function updateBankrollUI() {
+    const el = document.getElementById('bankrollAmount');
+    if (el) el.textContent = `$${bankroll.toLocaleString()}`;
+  }
+
+  function updateCurrentBetUI() {
+    const el = document.getElementById('currentBet');
+    if (el) el.textContent = `$${currentBet.toLocaleString()}`;
+  }
+
+  // ---------- chip rack visibility ----------
+  function hideChipRack() {
+    if (currentMode === 3) chipRackM3.classList.add('hidden');
+    if (currentMode === 2) chipRackM2.classList.add('hidden');
+  }
+
+  function showChipRack() {
+    if (currentMode === 3) chipRackM3.classList.remove('hidden');
+    if (currentMode === 2) chipRackM2.classList.remove('hidden');
+  }
+
   // ---------- phase + buttons ----------
   function setPhase(p) {
     phase = p;
@@ -179,13 +212,16 @@
   }
 
   function canSplit(hand) {
-    if (hand.cards.length !== 2) return false;
+    if (!hand || hand.cards.length !== 2) return false;
     if (playerHands.length >= 4) return false;
     return rankValue(hand.cards[0].rank) === rankValue(hand.cards[1].rank);
   }
 
   function updateButtonStates() {
-    dealBtn.disabled = !(phase === 'idle' || phase === 'over');
+    const dealAllowed = (phase === 'idle' || phase === 'over');
+    const brokeInMode3 = currentMode === 3 && bankroll <= 0 && currentBet === 0;
+    dealBtn.disabled = !dealAllowed || brokeInMode3;
+
     if (phase !== 'player') {
       hitBtn.disabled = standBtn.disabled = doubleBtn.disabled = splitBtn.disabled = true;
       return;
@@ -193,8 +229,9 @@
     const hand = playerHands[activeHandIndex];
     hitBtn.disabled = false;
     standBtn.disabled = false;
-    doubleBtn.disabled = !(hand && hand.cards.length === 2);
-    splitBtn.disabled = !canSplit(hand);
+    const cantAfford = currentMode === 3 && hand && hand.bet > bankroll;
+    doubleBtn.disabled = !(hand && hand.cards.length === 2) || cantAfford;
+    splitBtn.disabled = !canSplit(hand) || cantAfford;
   }
 
   // ---------- message + hand indicator ----------
@@ -224,8 +261,8 @@
   }
 
   // ---------- hand makers ----------
-  function makeHand() {
-    return { cards: [], stood: false, doubled: false, bust: false, blackjack: false };
+  function makeHand(bet = 0) {
+    return { cards: [], stood: false, doubled: false, bust: false, blackjack: false, bet };
   }
 
   // ---------- deal flow ----------
@@ -246,12 +283,25 @@
     dealerHandEl.innerHTML = '';
     playerHandEl.innerHTML = '';
     dealerHand = [];
-    playerHands = [makeHand()];
-    activeHandIndex = 0;
     hideMessage();
     hideHandIndicator();
 
+    // Mode 3: lock in bet
+    let handBet = 0;
+    if (currentMode === 3) {
+      if (currentBet > bankroll) return;
+      handBet = currentBet;
+      bankroll -= handBet;
+      currentBet = 0;
+      updateBankrollUI();
+      updateCurrentBetUI();
+    }
+
+    playerHands = [makeHand(handBet)];
+    activeHandIndex = 0;
+
     setPhase('dealing');
+    hideChipRack();
 
     const c1 = drawCard(); playerHands[0].cards.push(c1);
     await dealCardTo(playerHandEl, c1);
@@ -273,9 +323,20 @@
     if (pEval.isBlackjack || dEval.isBlackjack) {
       setPhase('dealer');
       await revealDealerHole();
-      if (pEval.isBlackjack && dEval.isBlackjack) endHand('push');
-      else if (pEval.isBlackjack) endHand('blackjack');
-      else endHand('lose');
+      let result;
+      if (pEval.isBlackjack && dEval.isBlackjack) result = 'push';
+      else if (pEval.isBlackjack) result = 'blackjack';
+      else result = 'lose';
+
+      // Initial-natural payout (Mode 3) — applied here so endHand stays payout-free
+      if (currentMode === 3) {
+        const h = playerHands[0];
+        if (result === 'blackjack') bankroll += Math.floor(h.bet * 2.5);
+        else if (result === 'push') bankroll += h.bet;
+        updateBankrollUI();
+      }
+
+      endHand(result);
       return;
     }
 
@@ -308,7 +369,15 @@
     if (phase !== 'player') return;
     const hand = playerHands[activeHandIndex];
     if (hand.cards.length !== 2) return;
+    if (currentMode === 3 && hand.bet > bankroll) return;
+
+    if (currentMode === 3) {
+      bankroll -= hand.bet;
+      hand.bet *= 2;
+      updateBankrollUI();
+    }
     hand.doubled = true;
+
     const c = drawCard();
     hand.cards.push(c);
     await dealCardTo(playerHandEl, c);
@@ -323,13 +392,19 @@
     if (phase !== 'player') return;
     const hand = playerHands[activeHandIndex];
     if (!canSplit(hand)) return;
+    if (currentMode === 3 && hand.bet > bankroll) return;
+
+    if (currentMode === 3) {
+      bankroll -= hand.bet;
+      updateBankrollUI();
+    }
 
     const second = hand.cards.pop();
-    const newHand = makeHand();
+    const newHand = makeHand(hand.bet);
     newHand.cards.push(second);
     playerHands.splice(activeHandIndex + 1, 0, newHand);
 
-    await renderActiveHand(); // re-render current hand with just 1 card
+    await renderActiveHand();
 
     const c = drawCard();
     hand.cards.push(c);
@@ -339,7 +414,6 @@
     updateDeckCount();
     updateHandIndicator();
 
-    // Split Aces: one card only, auto-stand
     if (hand.cards[0].rank === 'A') {
       hand.stood = true;
       await advanceHand();
@@ -425,6 +499,17 @@
       return 'push';
     });
 
+    // Mode 3 payouts (per hand, post-play)
+    if (currentMode === 3) {
+      playerHands.forEach((h, i) => {
+        const r = results[i];
+        if (r === 'win') bankroll += h.bet * 2;
+        else if (r === 'push') bankroll += h.bet;
+        // lose: bet stays gone
+      });
+      updateBankrollUI();
+    }
+
     if (playerHands.length === 1) {
       endHand(results[0]);
     } else {
@@ -437,6 +522,7 @@
       if (pushes) parts.push(`${pushes}P`);
       showMessage(parts.join(' · '), 'mixed');
       setPhase('over');
+      showChipRack();
     }
   }
 
@@ -448,6 +534,7 @@
     else if (result === 'push') { text = 'Push';      kind = 'push'; }
     showMessage(text, kind);
     setPhase('over');
+    showChipRack();
   }
 
   // ---------- reset + routing ----------
@@ -466,6 +553,7 @@
   }
 
   function showHome() {
+    currentMode = null;
     resetGameState();
     home.classList.remove('hidden');
     game.classList.add('hidden');
@@ -477,6 +565,8 @@
   }
 
   function showGame(mode) {
+    currentMode = mode;
+    if (mode === 3) resetBankroll();
     resetGameState();
     topMode.textContent = MODE_NAMES[mode] || '';
     countPanel.classList.toggle('hidden', mode !== 2);
@@ -500,13 +590,46 @@
   doubleBtn.addEventListener('click', playerDouble);
   splitBtn.addEventListener('click', playerSplit);
 
+  // Mode 3 chip taps
+  chipRackM3.querySelectorAll('.chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      if (currentMode !== 3) return;
+      if (phase !== 'idle' && phase !== 'over') return;
+      const value = chip.dataset.bet;
+      if (value === '0') {
+        currentBet = 0;
+      } else {
+        const amount = parseInt(value, 10);
+        if (currentBet + amount > bankroll) return;
+        currentBet += amount;
+      }
+      updateCurrentBetUI();
+      updateButtonStates();
+    });
+  });
+
+  document.getElementById('clearBet').addEventListener('click', () => {
+    if (currentMode !== 3) return;
+    if (phase !== 'idle' && phase !== 'over') return;
+    currentBet = 0;
+    updateCurrentBetUI();
+    updateButtonStates();
+  });
+
+  document.getElementById('resetBankroll').addEventListener('click', () => {
+    if (currentMode !== 3) return;
+    if (phase !== 'idle' && phase !== 'over') return;
+    resetBankroll();
+    updateButtonStates();
+  });
+
   // ---------- init + deep-link ----------
   shoe = buildShoe();
   initialShoeSize = shoe.length;
   updateDeckCount();
 
   // URL hash supports test sequences: #mode-N-<action>-<action>-...
-  // Actions: deal, hit, stand, double, split
+  // Actions: deal, hit, stand, double, split, bet<amount> (e.g. bet25), clear, reset
   const parts = location.hash.replace(/^#/, '').split('-');
   if (parts[0] === 'mode' && /^[123]$/.test(parts[1] || '')) {
     showGame(Number(parts[1]));
@@ -514,11 +637,22 @@
     if (actions.length) {
       setTimeout(async () => {
         for (const action of actions) {
-          if (action === 'deal') await dealNewHand();
-          else if (action === 'hit') await playerHit();
-          else if (action === 'stand') await playerStand();
+          const betMatch = action.match(/^bet(\d+)$/);
+          if (betMatch) {
+            const amt = parseInt(betMatch[1], 10);
+            if (currentMode === 3 && (phase === 'idle' || phase === 'over') && currentBet + amt <= bankroll) {
+              currentBet += amt;
+              updateCurrentBetUI();
+              updateButtonStates();
+            }
+          }
+          else if (action === 'deal')   await dealNewHand();
+          else if (action === 'hit')    await playerHit();
+          else if (action === 'stand')  await playerStand();
           else if (action === 'double') await playerDouble();
-          else if (action === 'split') await playerSplit();
+          else if (action === 'split')  await playerSplit();
+          else if (action === 'clear')  { currentBet = 0; updateCurrentBetUI(); }
+          else if (action === 'reset')  resetBankroll();
           await sleep(250);
         }
       }, 150);
