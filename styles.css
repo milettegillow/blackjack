@@ -1147,73 +1147,164 @@ body::before {
 
 .tutorial-next:hover { transform: translateY(-1px); }
 
-/* ============ COACHED PLAY HINT (Mode 1) ============ */
-.strategy-hint {
+/* ============ TUTORIAL VISUALS (Mode 1) ============ */
+.tutorial-visual {
+  margin-bottom: 18px;
+  display: flex;
+  justify-content: center;
+}
+
+.tutorial-text {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-dim);
+}
+
+.tut-cards {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+
+.tut-hand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.tut-cards-row {
+  display: flex;
+  gap: 4px;
+}
+
+.tut-cards-row.tut-spaced { gap: 14px; }
+
+.tut-cards-row img,
+.tut-mini img {
+  width: 46px;
+  height: 65px;
+  border-radius: 3px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.tut-mini {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.tut-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 0.05em;
+}
+
+.tut-label {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: 0.05em;
   text-align: center;
+}
+
+.tut-label.tut-bust { color: #e57373; }
+
+.tut-vs {
   font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-faint);
+}
+
+.tut-review-mockup {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 4px;
+  padding: 10px 14px;
+  min-width: 260px;
+}
+
+.tut-review-mockup .review-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--gold);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.tut-review-mockup .review-line {
+  font-family: 'Lora', Georgia, serif;
   font-size: 12px;
-  letter-spacing: 0.1em;
-  color: var(--gold);
-  height: 18px;
-  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+.tut-review-mockup .review-line.correct { color: #a7d4b3; }
+.tut-review-mockup .review-line.miss { color: #f0c275; }
+
+.tut-review-mockup .review-summary {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--ink-faint);
+  text-align: center;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(212, 175, 55, 0.15);
+}
+
+/* ============ ROUND REVIEW (Mode 1) ============ */
+.round-review {
+  max-width: 400px;
+  width: 100%;
+  margin: 10px auto 0;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.42);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 4px;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transform: translateY(4px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  pointer-events: none;
 }
 
-.strategy-hint.show { opacity: 1; }
-.strategy-hint .label { color: var(--ink-faint); margin-right: 4px; }
-
-.action-btn.hint {
-  box-shadow:
-    0 0 0 1px var(--gold),
-    0 0 18px rgba(212, 175, 55, 0.35);
-  background: linear-gradient(180deg, rgba(212, 175, 55, 0.22), rgba(212, 175, 55, 0.08));
+.round-review.show {
+  opacity: 1;
+  transform: translateY(0);
 }
 
-.action-btn.hint::after {
-  content: "\2726"; /* ✦ */
-  position: absolute;
-  top: 3px;
-  right: 5px;
-  font-size: 9px;
+.round-review .review-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
   color: var(--gold);
+  text-align: center;
+  margin-bottom: 8px;
 }
 
-/* ============ COACHED PLAY FEEDBACK (Mode 1) ============ */
-.strategy-feedback {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 100%;
-  margin-bottom: 10px;
+.round-review .review-line {
   font-family: 'Lora', Georgia, serif;
   font-size: 13px;
-  font-weight: 500;
-  padding: 4px 12px;
-  border-radius: 100px;
-  opacity: 0;
-  pointer-events: none;
-  white-space: nowrap;
-  z-index: 5;
+  line-height: 1.55;
 }
 
-.strategy-feedback.show { animation: strategyFeedbackFloat 2s ease forwards; }
+.round-review .review-line.correct { color: #a7d4b3; }
+.round-review .review-line.miss { color: #f0c275; }
 
-.strategy-feedback.good {
-  color: #6ee7b7;
-  background: rgba(110, 231, 183, 0.1);
-  border: 1px solid rgba(110, 231, 183, 0.3);
-}
-
-.strategy-feedback.miss {
-  color: #fcd34d;
-  background: rgba(252, 211, 77, 0.1);
-  border: 1px solid rgba(252, 211, 77, 0.3);
-}
-
-@keyframes strategyFeedbackFloat {
-  0%   { opacity: 0; transform: translateX(-50%) translateY(4px); }
-  15%  { opacity: 1; transform: translateX(-50%) translateY(0); }
-  80%  { opacity: 1; transform: translateX(-50%) translateY(-2px); }
-  100% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+.round-review .review-summary {
+  font-family: 'Lora', Georgia, serif;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--ink-faint);
+  text-align: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(212, 175, 55, 0.15);
 }

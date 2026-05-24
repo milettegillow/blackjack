@@ -266,31 +266,126 @@
   const TUTORIAL_LESSONS = [
     {
       title: 'The Goal',
+      visual: `
+        <div class="tut-cards">
+          <div class="tut-hand">
+            <div class="tut-cards-row">
+              <img src="/assets/cards/KS.svg" alt="">
+              <img src="/assets/cards/9H.svg" alt="">
+            </div>
+            <div class="tut-label">You · 19</div>
+          </div>
+          <div class="tut-vs">vs</div>
+          <div class="tut-hand">
+            <div class="tut-cards-row">
+              <img src="/assets/cards/10D.svg" alt="">
+              <img src="/assets/cards/7C.svg" alt="">
+            </div>
+            <div class="tut-label">Dealer · 17</div>
+          </div>
+        </div>`,
       body: `Get closer to <strong>21</strong> than the dealer, without going over. Beat the dealer's hand and you win.`
     },
     {
       title: 'Card Values',
-      body: `Number cards (2–10) count as their face value. <strong>J, Q, K</strong> all count as 10. An <strong>Ace</strong> counts as either 1 or 11 — whichever is better for you.`
+      visual: `
+        <div class="tut-cards-row tut-spaced">
+          <div class="tut-mini"><img src="/assets/cards/2S.svg" alt=""><div class="tut-value">2</div></div>
+          <div class="tut-mini"><img src="/assets/cards/7H.svg" alt=""><div class="tut-value">7</div></div>
+          <div class="tut-mini"><img src="/assets/cards/QC.svg" alt=""><div class="tut-value">10</div></div>
+          <div class="tut-mini"><img src="/assets/cards/AD.svg" alt=""><div class="tut-value">1 or 11</div></div>
+        </div>`,
+      body: `Number cards count as their face value. <strong>J, Q, K</strong> all count as 10. An <strong>Ace</strong> counts as either 1 or 11 — whichever helps you.`
     },
     {
       title: 'Hit, Stand, Bust',
+      visual: `
+        <div class="tut-cards">
+          <div class="tut-hand">
+            <div class="tut-cards-row">
+              <img src="/assets/cards/8H.svg" alt="">
+              <img src="/assets/cards/6C.svg" alt="">
+              <img src="/assets/cards/KS.svg" alt="">
+            </div>
+            <div class="tut-label tut-bust">24 · Bust</div>
+          </div>
+        </div>`,
       body: `<strong>Hit</strong> = take another card. <strong>Stand</strong> = keep your total. If your total goes over 21, you <strong>bust</strong> and lose immediately, regardless of what the dealer does.`
     },
     {
       title: 'Soft and Hard Hands',
-      body: `A <strong>soft</strong> hand has an Ace counted as 11 — you can't bust on the next card because the Ace flips to 1 if needed. A <strong>hard</strong> hand either has no Ace, or the Ace is forced to count as 1.`
+      visual: `
+        <div class="tut-cards">
+          <div class="tut-hand">
+            <div class="tut-cards-row">
+              <img src="/assets/cards/AH.svg" alt="">
+              <img src="/assets/cards/6C.svg" alt="">
+            </div>
+            <div class="tut-label">Soft 17</div>
+          </div>
+          <div class="tut-hand">
+            <div class="tut-cards-row">
+              <img src="/assets/cards/AH.svg" alt="">
+              <img src="/assets/cards/6C.svg" alt="">
+              <img src="/assets/cards/QD.svg" alt="">
+            </div>
+            <div class="tut-label">Hard 17</div>
+          </div>
+        </div>`,
+      body: `A <strong>soft</strong> hand has an Ace counted as 11 — you can't bust on the next card because the Ace flips to 1 if needed. A <strong>hard</strong> hand has no Ace, or the Ace is forced to count as 1.`
     },
     {
       title: "The Dealer's Rules",
+      visual: `
+        <div class="tut-cards">
+          <div class="tut-hand">
+            <div class="tut-cards-row">
+              <img src="/assets/cards/7C.svg" alt="">
+              <img src="/assets/cards/9H.svg" alt="">
+            </div>
+            <div class="tut-label">16 · Must hit</div>
+          </div>
+          <div class="tut-hand">
+            <div class="tut-cards-row">
+              <img src="/assets/cards/10S.svg" alt="">
+              <img src="/assets/cards/7D.svg" alt="">
+            </div>
+            <div class="tut-label">17 · Must stand</div>
+          </div>
+        </div>`,
       body: `After you play, the dealer reveals their hidden card and must <strong>hit until reaching 17 or more</strong>. They don't get to choose. Whoever has the higher total without busting wins.`
     },
     {
       title: 'Double and Split',
-      body: `<strong>Double</strong> = double your bet, take exactly one more card, then stand automatically. <strong>Split</strong> = if your two cards are a pair, play them as two separate hands. <em>Always split Aces and 8s. Never split 10s.</em>`
+      visual: `
+        <div class="tut-cards">
+          <div class="tut-hand">
+            <div class="tut-cards-row">
+              <img src="/assets/cards/5S.svg" alt="">
+              <img src="/assets/cards/6H.svg" alt="">
+            </div>
+            <div class="tut-label">11 · Double</div>
+          </div>
+          <div class="tut-hand">
+            <div class="tut-cards-row">
+              <img src="/assets/cards/8S.svg" alt="">
+              <img src="/assets/cards/8H.svg" alt="">
+            </div>
+            <div class="tut-label">Pair · Split</div>
+          </div>
+        </div>`,
+      body: `<strong>Double</strong> = double your bet, take exactly one more card. <strong>Split</strong> = if your two cards are a pair, play them as two separate hands. <em>Always split Aces and 8s. Never split 10s.</em>`
     },
     {
-      title: 'Basic Strategy',
-      body: `For every combination of your hand and the dealer's upcard, there's a mathematically optimal move. This mode will <em>highlight the correct move</em> before each decision and tell you afterward whether you got it right. Play enough hands and you'll know the chart by heart.`
+      title: 'Round Review',
+      visual: `
+        <div class="tut-review-mockup">
+          <div class="review-title">Round Review</div>
+          <div class="review-line correct">✓ Hit on 14 vs 6 — correct</div>
+          <div class="review-line miss">✗ Stood on 16 vs 10 — should have hit</div>
+          <div class="review-summary">One mistake this round.</div>
+        </div>`,
+      body: `For every combination of your hand and the dealer's upcard, there's a mathematically optimal move. After each round, this mode will <em>review every decision you made</em> and tell you if it was the right call — even if you won by getting lucky, or lost despite playing perfectly.`
     }
   ];
 
@@ -306,7 +401,10 @@
     const lesson = TUTORIAL_LESSONS[tutorialIndex];
     document.getElementById('tutorialProgress').textContent = `${tutorialIndex + 1} / ${TUTORIAL_LESSONS.length}`;
     document.getElementById('tutorialTitle').textContent = lesson.title;
-    document.getElementById('tutorialBody').innerHTML = lesson.body;
+    document.getElementById('tutorialBody').innerHTML = `
+      <div class="tutorial-visual">${lesson.visual}</div>
+      <div class="tutorial-text">${lesson.body}</div>
+    `;
     const nextBtn = document.getElementById('tutorialNext');
     nextBtn.textContent = tutorialIndex === TUTORIAL_LESSONS.length - 1 ? 'Start Playing' : 'Next';
   }
@@ -379,45 +477,93 @@
     return ({ H: 'Hit', S: 'Stand', D: 'Double', Ds: 'Double', P: 'Split' })[action] || 'Hit';
   }
 
-  function refreshHint() {
-    ['hitBtn','standBtn','doubleBtn','splitBtn'].forEach(id => {
-      document.getElementById(id).classList.remove('hint');
-    });
-    const hintEl = document.getElementById('strategyHint');
-    hintEl.classList.remove('show');
+  // ---------- round review (Mode 1) ----------
+  let roundDecisions = [];
 
-    if (currentMode !== 1 || phase !== 'player') return;
-    const hand = playerHands[activeHandIndex];
-    if (!hand || hand.cards.length === 0 || dealerHand.length === 0) return;
-    const canDoubleNow = hand.cards.length === 2;
-    const canSplitNow = canSplit(hand);
-    const sugg = basicStrategy(hand.cards, dealerHand[0], canDoubleNow, canSplitNow);
-    const buttonId = strategyToButton(sugg, canDoubleNow);
-    const btnElId = { hit: 'hitBtn', stand: 'standBtn', double: 'doubleBtn', split: 'splitBtn' }[buttonId];
-    if (btnElId && !document.getElementById(btnElId).disabled) {
-      document.getElementById(btnElId).classList.add('hint');
-    }
-    hintEl.innerHTML = `<span class="label">Suggested:</span> ${strategyLabel(sugg)}`;
-    hintEl.classList.add('show');
+  function rankLabel(r) {
+    if (r === 'T') return '10';
+    return r;
   }
 
-  function evaluateMove(actionTaken) {
+  function pairLabel(r) {
+    if (r === 'A') return 'Aces';
+    if (r === '10' || r === 'T' || r === 'J' || r === 'Q' || r === 'K') return '10s';
+    return r + 's';
+  }
+
+  function handDescription(d) {
+    if (d.isPair) return `pair of ${pairLabel(d.pairRank)}`;
+    if (d.soft) return `soft ${d.total}`;
+    return `${d.total}`;
+  }
+
+  function capitalize(s) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  function shouldHavePhrase(code) {
+    const map = { H: 'hit', S: 'stood', D: 'doubled', Ds: 'doubled', P: 'split' };
+    return map[code] || 'hit';
+  }
+
+  function logDecision(action) {
     if (currentMode !== 1) return;
     const hand = playerHands[activeHandIndex];
     if (!hand || hand.cards.length === 0 || dealerHand.length === 0) return;
+    const ev = evaluateHand(hand.cards);
     const canDoubleNow = hand.cards.length === 2;
     const canSplitNow = canSplit(hand);
     const sugg = basicStrategy(hand.cards, dealerHand[0], canDoubleNow, canSplitNow);
     const optimalButton = strategyToButton(sugg, canDoubleNow);
-    const fb = document.getElementById('strategyFeedback');
-    if (actionTaken === optimalButton) {
-      fb.textContent = '✓ Optimal';
-      fb.className = 'strategy-feedback show good';
-    } else {
-      fb.textContent = `Optimal: ${strategyLabel(sugg)}`;
-      fb.className = 'strategy-feedback show miss';
+    const isPair = hand.cards.length === 2 && rankValue(hand.cards[0].rank) === rankValue(hand.cards[1].rank);
+    roundDecisions.push({
+      total: ev.total,
+      soft: ev.soft,
+      isPair,
+      pairRank: isPair ? hand.cards[0].rank : null,
+      dealerUp: dealerHand[0].rank,
+      actionTaken: action,
+      optimalCode: sugg,
+      optimalButton
+    });
+  }
+
+  function renderRoundReview(outcome) {
+    if (currentMode !== 1) return;
+    const el = document.getElementById('roundReview');
+    if (roundDecisions.length === 0) {
+      el.classList.remove('show');
+      el.innerHTML = '';
+      return;
     }
-    setTimeout(() => { fb.className = 'strategy-feedback'; }, 2000);
+    let html = '<div class="review-title">Round Review</div>';
+    let mistakes = 0;
+    roundDecisions.forEach(d => {
+      const correct = d.actionTaken === d.optimalButton;
+      if (!correct) mistakes++;
+      const icon = correct ? '✓' : '✗';
+      const cls  = correct ? 'correct' : 'miss';
+      const action = capitalize(d.actionTaken);
+      const hand = handDescription(d);
+      const dealer = rankLabel(d.dealerUp);
+      if (correct) {
+        html += `<div class="review-line ${cls}">${icon} ${action} on ${hand} vs ${dealer} — correct</div>`;
+      } else {
+        const should = shouldHavePhrase(d.optimalCode);
+        html += `<div class="review-line ${cls}">${icon} ${action} on ${hand} vs ${dealer} — should have ${should}</div>`;
+      }
+    });
+    let summary;
+    if (mistakes === 0) {
+      summary = outcome === 'loss'
+        ? `Perfect play. The cards just didn't fall your way.`
+        : `Perfect play.`;
+    } else {
+      summary = mistakes === 1 ? `One mistake this round.` : `${mistakes} mistakes this round.`;
+    }
+    html += `<div class="review-summary">${summary}</div>`;
+    el.innerHTML = html;
+    el.classList.add('show');
   }
 
   // ---------- chip rack disabled state ----------
@@ -456,7 +602,6 @@
       doubleBtn.disabled = !(hand && hand.cards.length === 2) || cantAfford;
       splitBtn.disabled = !canSplit(hand) || cantAfford;
     }
-    refreshHint();
   }
 
   // ---------- message + hand indicator ----------
@@ -512,6 +657,11 @@
     hideMessage();
     hideHandIndicator();
 
+    roundDecisions = [];
+    const reviewEl = document.getElementById('roundReview');
+    reviewEl.classList.remove('show');
+    reviewEl.innerHTML = '';
+
     // Eager bet flow: chips are already off the bankroll. Just lock the
     // currentBet onto the hand; bankroll + currentBet display are unchanged.
     let handBet = 0;
@@ -558,7 +708,7 @@
   // ---------- player actions ----------
   async function playerHit() {
     if (phase !== 'player') return;
-    evaluateMove('hit');
+    logDecision('hit');
     const hand = playerHands[activeHandIndex];
     const c = drawCard();
     hand.cards.push(c);
@@ -574,7 +724,7 @@
 
   async function playerStand() {
     if (phase !== 'player') return;
-    evaluateMove('stand');
+    logDecision('stand');
     playerHands[activeHandIndex].stood = true;
     await advanceHand();
   }
@@ -585,7 +735,7 @@
     if (hand.cards.length !== 2) return;
     if (currentMode === 3 && hand.bet > bankroll) return;
 
-    evaluateMove('double');
+    logDecision('double');
 
     if (currentMode === 3) {
       bankroll -= hand.bet;
@@ -612,7 +762,7 @@
     if (!canSplit(hand)) return;
     if (currentMode === 3 && hand.bet > bankroll) return;
 
-    evaluateMove('split');
+    logDecision('split');
 
     if (currentMode === 3) {
       bankroll -= hand.bet;
@@ -736,6 +886,17 @@
       showMessage(parts.join(' · '), 'mixed');
       setPhase('over');
     }
+
+    // Mode 1: show round review
+    const wins = results.filter(r => r === 'win').length;
+    const losses = results.filter(r => r === 'lose').length;
+    const pushes = results.filter(r => r === 'push').length;
+    let outcome;
+    if (wins > 0 && losses === 0) outcome = 'win';
+    else if (losses > 0 && wins === 0) outcome = 'loss';
+    else if (pushes === results.length) outcome = 'push';
+    else outcome = 'mixed';
+    renderRoundReview(outcome);
   }
 
   function endHand(result) {
