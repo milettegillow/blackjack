@@ -791,6 +791,7 @@ body::before {
 }
 
 .bet-display {
+  position: relative;
   display: inline-flex;
   align-items: baseline;
   gap: 10px;
@@ -824,6 +825,34 @@ body::before {
 .bet-clear:hover {
   color: var(--ink);
   text-decoration: underline;
+}
+
+.bet-result {
+  position: absolute;
+  top: -28px;
+  right: 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  font-size: 16px;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 5;
+}
+
+.bet-result.show {
+  animation: betResultFloat 2.4s ease forwards;
+}
+
+.bet-result.positive { color: #6ee7b7; }
+.bet-result.negative { color: #fb7185; }
+.bet-result.push     { color: #fcd34d; }
+
+@keyframes betResultFloat {
+  0%   { opacity: 0; transform: translateY(6px); }
+  15%  { opacity: 1; transform: translateY(0); }
+  75%  { opacity: 1; transform: translateY(-4px); }
+  100% { opacity: 0; transform: translateY(-14px); }
 }
 
 .chip {

@@ -21,6 +21,7 @@
   let currentMode = null;        // 1, 2, 3, or null on home
   let bankroll = STARTING_BANKROLL;
   let currentBet = 0;
+  let settling = false;          // true during the 2.4s bet-result animation
 
   // ---------- DOM refs ----------
   const home = document.getElementById('screen-home');
@@ -193,6 +194,62 @@
     if (el) el.textContent = `$${currentBet.toLocaleString()}`;
   }
 
+  // Eager bet flow: chips leave the bankroll the moment they're tapped, so the
+  // bankroll always reflects what's left in the rack. At resolution, the dealer
+  // matches winnings + returns the original wager; losses are already gone.
+  function settleAndShowResult(results) {
+    if (currentMode !== 3) return;
+    let netChange = 0;        // flows back to bankroll after fade
+    let displayAmount = 0;    // shown on the floating indicator (winnings only)
+    results.forEach((r, i) => {
+      const h = playerHands[i];
+      if (r === 'win') {
+        netChange += h.bet * 2;       // bet returned + 1:1 winnings
+        displayAmount += h.bet;
+      } else if (r === 'blackjack') {
+        const winnings = Math.floor(h.bet * 1.5);
+        netChange += h.bet + winnings;
+        displayAmount += winnings;
+      } else if (r === 'push') {
+        netChange += h.bet;           // bet returned, no winnings
+      } else if (r === 'lose') {
+        displayAmount -= h.bet;       // chips already gone from bankroll
+      }
+    });
+    showBetResult(displayAmount, results, netChange);
+  }
+
+  function showBetResult(displayAmount, results, netChange) {
+    const el = document.getElementById('betResult');
+    if (!el) return;
+    if (results.every(r => r === 'push')) {
+      el.textContent = 'Push';
+      el.className = 'bet-result show push';
+    } else if (displayAmount > 0) {
+      el.textContent = `+$${displayAmount.toLocaleString()}`;
+      el.className = 'bet-result show positive';
+    } else if (displayAmount < 0) {
+      el.textContent = `-$${Math.abs(displayAmount).toLocaleString()}`;
+      el.className = 'bet-result show negative';
+    } else {
+      el.textContent = 'Push';
+      el.className = 'bet-result show push';
+    }
+    settling = true;
+    updateButtonStates();
+    setTimeout(() => {
+      bankroll += netChange;
+      currentBet = 0;
+      playerHands.forEach(h => { h.bet = 0; });
+      el.className = 'bet-result';
+      updateBankrollUI();
+      updateCurrentBetUI();
+      settling = false;
+      showChipRack();
+      updateButtonStates();
+    }, 2400);
+  }
+
   // ---------- chip rack visibility ----------
   function hideChipRack() {
     if (currentMode === 3) chipRackM3.classList.add('hidden');
@@ -220,7 +277,7 @@
   function updateButtonStates() {
     const dealAllowed = (phase === 'idle' || phase === 'over');
     const brokeInMode3 = currentMode === 3 && bankroll <= 0 && currentBet === 0;
-    dealBtn.disabled = !dealAllowed || brokeInMode3;
+    dealBtn.disabled = !dealAllowed || settling || brokeInMode3;
 
     if (phase !== 'player') {
       hitBtn.disabled = standBtn.disabled = doubleBtn.disabled = splitBtn.disabled = true;
@@ -279,6 +336,7 @@
 
   async function dealNewHand() {
     if (phase !== 'idle' && phase !== 'over') return;
+    if (settling) return;
 
     dealerHandEl.innerHTML = '';
     playerHandEl.innerHTML = '';
@@ -286,16 +344,10 @@
     hideMessage();
     hideHandIndicator();
 
-    // Mode 3: lock in bet
+    // Eager bet flow: chips are already off the bankroll. Just lock the
+    // currentBet onto the hand; bankroll + currentBet display are unchanged.
     let handBet = 0;
-    if (currentMode === 3) {
-      if (currentBet > bankroll) return;
-      handBet = currentBet;
-      bankroll -= handBet;
-      currentBet = 0;
-      updateBankrollUI();
-      updateCurrentBetUI();
-    }
+    if (currentMode === 3) handBet = currentBet;
 
     playerHands = [makeHand(handBet)];
     activeHandIndex = 0;
@@ -328,14 +380,7 @@
       else if (pEval.isBlackjack) result = 'blackjack';
       else result = 'lose';
 
-      // Initial-natural payout (Mode 3) — applied here so endHand stays payout-free
-      if (currentMode === 3) {
-        const h = playerHands[0];
-        if (result === 'blackjack') bankroll += Math.floor(h.bet * 2.5);
-        else if (result === 'push') bankroll += h.bet;
-        updateBankrollUI();
-      }
-
+      settleAndShowResult([result]);
       endHand(result);
       return;
     }
@@ -373,8 +418,10 @@
 
     if (currentMode === 3) {
       bankroll -= hand.bet;
+      currentBet += hand.bet;
       hand.bet *= 2;
       updateBankrollUI();
+      updateCurrentBetUI();
     }
     hand.doubled = true;
 
@@ -396,7 +443,9 @@
 
     if (currentMode === 3) {
       bankroll -= hand.bet;
+      currentBet += hand.bet;
       updateBankrollUI();
+      updateCurrentBetUI();
     }
 
     const second = hand.cards.pop();
@@ -499,16 +548,7 @@
       return 'push';
     });
 
-    // Mode 3 payouts (per hand, post-play)
-    if (currentMode === 3) {
-      playerHands.forEach((h, i) => {
-        const r = results[i];
-        if (r === 'win') bankroll += h.bet * 2;
-        else if (r === 'push') bankroll += h.bet;
-        // lose: bet stays gone
-      });
-      updateBankrollUI();
-    }
+    settleAndShowResult(results);
 
     if (playerHands.length === 1) {
       endHand(results[0]);
@@ -522,7 +562,7 @@
       if (pushes) parts.push(`${pushes}P`);
       showMessage(parts.join(' · '), 'mixed');
       setPhase('over');
-      showChipRack();
+      if (currentMode !== 3) showChipRack();
     }
   }
 
@@ -534,7 +574,7 @@
     else if (result === 'push') { text = 'Push';      kind = 'push'; }
     showMessage(text, kind);
     setPhase('over');
-    showChipRack();
+    if (currentMode !== 3) showChipRack();
   }
 
   // ---------- reset + routing ----------
@@ -590,19 +630,23 @@
   doubleBtn.addEventListener('click', playerDouble);
   splitBtn.addEventListener('click', playerSplit);
 
-  // Mode 3 chip taps
+  // Mode 3 chip taps (eager — bankroll moves immediately)
   chipRackM3.querySelectorAll('.chip').forEach((chip) => {
     chip.addEventListener('click', () => {
       if (currentMode !== 3) return;
       if (phase !== 'idle' && phase !== 'over') return;
       const value = chip.dataset.bet;
       if (value === '0') {
+        // Skip: return any chips already on the table
+        bankroll += currentBet;
         currentBet = 0;
       } else {
         const amount = parseInt(value, 10);
-        if (currentBet + amount > bankroll) return;
+        if (amount > bankroll) return;
+        bankroll -= amount;
         currentBet += amount;
       }
+      updateBankrollUI();
       updateCurrentBetUI();
       updateButtonStates();
     });
@@ -611,7 +655,9 @@
   document.getElementById('clearBet').addEventListener('click', () => {
     if (currentMode !== 3) return;
     if (phase !== 'idle' && phase !== 'over') return;
+    bankroll += currentBet;
     currentBet = 0;
+    updateBankrollUI();
     updateCurrentBetUI();
     updateButtonStates();
   });
@@ -640,8 +686,10 @@
           const betMatch = action.match(/^bet(\d+)$/);
           if (betMatch) {
             const amt = parseInt(betMatch[1], 10);
-            if (currentMode === 3 && (phase === 'idle' || phase === 'over') && currentBet + amt <= bankroll) {
+            if (currentMode === 3 && (phase === 'idle' || phase === 'over') && amt <= bankroll) {
+              bankroll -= amt;
               currentBet += amt;
+              updateBankrollUI();
               updateCurrentBetUI();
               updateButtonStates();
             }
@@ -651,7 +699,12 @@
           else if (action === 'stand')  await playerStand();
           else if (action === 'double') await playerDouble();
           else if (action === 'split')  await playerSplit();
-          else if (action === 'clear')  { currentBet = 0; updateCurrentBetUI(); }
+          else if (action === 'clear')  {
+            bankroll += currentBet;
+            currentBet = 0;
+            updateBankrollUI();
+            updateCurrentBetUI();
+          }
           else if (action === 'reset')  resetBankroll();
           await sleep(250);
         }
