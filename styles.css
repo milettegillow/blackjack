@@ -1505,7 +1505,9 @@ body::before {
   font-weight: 700;
   pointer-events: none;
   z-index: 10;
-  animation: countBadgePop 1.8s ease forwards;
+  opacity: 0;
+  transform: scale(0.6) translateY(6px);
+  animation: countBadgePop 1.6s ease 0.25s forwards;
 }
 
 .count-badge.plus  { background: #1f4a36; color: #b7e4c7; border: 1px solid #6ee7b7; }

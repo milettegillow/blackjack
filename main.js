@@ -603,6 +603,10 @@
     const v = hiloValue(rank);
     const sign = v > 0 ? 'plus' : v < 0 ? 'minus' : 'zero';
     const text = v > 0 ? `+${v}` : `${v}`;
+    const computedPos = getComputedStyle(cardEl).position;
+    if (computedPos === 'static') {
+      cardEl.style.position = 'relative';
+    }
     const badge = document.createElement('div');
     badge.className = `count-badge ${sign}`;
     badge.textContent = text;
