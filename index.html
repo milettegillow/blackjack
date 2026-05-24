@@ -153,6 +153,8 @@
         </div>
 
         <div class="action-bar">
+          <div class="strategy-hint" id="strategyHint"></div>
+          <div class="strategy-feedback" id="strategyFeedback"></div>
           <div class="actions" id="actionsRow">
             <button class="action-btn" id="hitBtn" disabled>
               <span>Hit</span>
@@ -224,6 +226,23 @@
             <button class="bankrupt-btn" id="bankruptHomeBtn">
               Back to Menu
             </button>
+          </div>
+        </div>
+
+        <div
+          class="tutorial-modal hidden"
+          id="tutorialModal"
+          aria-hidden="true"
+        >
+          <div class="tutorial-backdrop"></div>
+          <div class="tutorial-card">
+            <div class="tutorial-progress" id="tutorialProgress">1 / 7</div>
+            <h2 class="tutorial-title" id="tutorialTitle">The Goal</h2>
+            <div class="tutorial-body" id="tutorialBody"></div>
+            <div class="tutorial-actions">
+              <button class="tutorial-skip" id="tutorialSkip">Skip</button>
+              <button class="tutorial-next" id="tutorialNext">Next</button>
+            </div>
           </div>
         </div>
       </div>

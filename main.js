@@ -262,6 +262,164 @@
     modal.setAttribute('aria-hidden', 'true');
   }
 
+  // ---------- tutorial (Mode 1) ----------
+  const TUTORIAL_LESSONS = [
+    {
+      title: 'The Goal',
+      body: `Get closer to <strong>21</strong> than the dealer, without going over. Beat the dealer's hand and you win.`
+    },
+    {
+      title: 'Card Values',
+      body: `Number cards (2–10) count as their face value. <strong>J, Q, K</strong> all count as 10. An <strong>Ace</strong> counts as either 1 or 11 — whichever is better for you.`
+    },
+    {
+      title: 'Hit, Stand, Bust',
+      body: `<strong>Hit</strong> = take another card. <strong>Stand</strong> = keep your total. If your total goes over 21, you <strong>bust</strong> and lose immediately, regardless of what the dealer does.`
+    },
+    {
+      title: 'Soft and Hard Hands',
+      body: `A <strong>soft</strong> hand has an Ace counted as 11 — you can't bust on the next card because the Ace flips to 1 if needed. A <strong>hard</strong> hand either has no Ace, or the Ace is forced to count as 1.`
+    },
+    {
+      title: "The Dealer's Rules",
+      body: `After you play, the dealer reveals their hidden card and must <strong>hit until reaching 17 or more</strong>. They don't get to choose. Whoever has the higher total without busting wins.`
+    },
+    {
+      title: 'Double and Split',
+      body: `<strong>Double</strong> = double your bet, take exactly one more card, then stand automatically. <strong>Split</strong> = if your two cards are a pair, play them as two separate hands. <em>Always split Aces and 8s. Never split 10s.</em>`
+    },
+    {
+      title: 'Basic Strategy',
+      body: `For every combination of your hand and the dealer's upcard, there's a mathematically optimal move. This mode will <em>highlight the correct move</em> before each decision and tell you afterward whether you got it right. Play enough hands and you'll know the chart by heart.`
+    }
+  ];
+
+  let tutorialIndex = 0;
+
+  function showTutorial() {
+    tutorialIndex = 0;
+    renderTutorial();
+    document.getElementById('tutorialModal').classList.remove('hidden');
+  }
+
+  function renderTutorial() {
+    const lesson = TUTORIAL_LESSONS[tutorialIndex];
+    document.getElementById('tutorialProgress').textContent = `${tutorialIndex + 1} / ${TUTORIAL_LESSONS.length}`;
+    document.getElementById('tutorialTitle').textContent = lesson.title;
+    document.getElementById('tutorialBody').innerHTML = lesson.body;
+    const nextBtn = document.getElementById('tutorialNext');
+    nextBtn.textContent = tutorialIndex === TUTORIAL_LESSONS.length - 1 ? 'Start Playing' : 'Next';
+  }
+
+  function hideTutorial() {
+    document.getElementById('tutorialModal').classList.add('hidden');
+  }
+
+  // ---------- basic strategy (Mode 1 coaching) ----------
+  function basicStrategy(handCards, dealerUp, canDoubleNow, canSplitNow) {
+    const dv = rankValue(dealerUp.rank);
+    const dKey = dv === 11 ? 'A' : String(dv);
+
+    if (canSplitNow && handCards.length === 2 && rankValue(handCards[0].rank) === rankValue(handCards[1].rank)) {
+      const r = handCards[0].rank;
+      const pairKey = r === 'A' ? 'A' : (['J','Q','K','T'].includes(r)) ? '10' : r;
+      const PAIRS = {
+        'A':  {'2':'P','3':'P','4':'P','5':'P','6':'P','7':'P','8':'P','9':'P','10':'P','A':'P'},
+        '10': {'2':'S','3':'S','4':'S','5':'S','6':'S','7':'S','8':'S','9':'S','10':'S','A':'S'},
+        '9':  {'2':'P','3':'P','4':'P','5':'P','6':'P','7':'S','8':'P','9':'P','10':'S','A':'S'},
+        '8':  {'2':'P','3':'P','4':'P','5':'P','6':'P','7':'P','8':'P','9':'P','10':'P','A':'P'},
+        '7':  {'2':'P','3':'P','4':'P','5':'P','6':'P','7':'P','8':'H','9':'H','10':'H','A':'H'},
+        '6':  {'2':'P','3':'P','4':'P','5':'P','6':'P','7':'H','8':'H','9':'H','10':'H','A':'H'},
+        '5':  {'2':'D','3':'D','4':'D','5':'D','6':'D','7':'D','8':'D','9':'D','10':'H','A':'H'},
+        '4':  {'2':'H','3':'H','4':'H','5':'P','6':'P','7':'H','8':'H','9':'H','10':'H','A':'H'},
+        '3':  {'2':'P','3':'P','4':'P','5':'P','6':'P','7':'P','8':'H','9':'H','10':'H','A':'H'},
+        '2':  {'2':'P','3':'P','4':'P','5':'P','6':'P','7':'P','8':'H','9':'H','10':'H','A':'H'}
+      };
+      const a = PAIRS[pairKey] && PAIRS[pairKey][dKey];
+      if (a) return a;
+    }
+
+    const ev = evaluateHand(handCards);
+
+    if (ev.soft) {
+      const t = ev.total;
+      if (t >= 20) return 'S';
+      if (t === 19) return dKey === '6' ? 'Ds' : 'S';
+      if (t === 18) {
+        if (['3','4','5','6'].includes(dKey)) return 'Ds';
+        if (['2','7','8'].includes(dKey)) return 'S';
+        return 'H';
+      }
+      if (t === 17) return ['3','4','5','6'].includes(dKey) ? 'D' : 'H';
+      if (t === 16 || t === 15) return ['4','5','6'].includes(dKey) ? 'D' : 'H';
+      if (t === 14 || t === 13) return ['5','6'].includes(dKey) ? 'D' : 'H';
+      return 'H';
+    }
+
+    const t = ev.total;
+    if (t >= 17) return 'S';
+    if (t >= 13 && t <= 16) return ['2','3','4','5','6'].includes(dKey) ? 'S' : 'H';
+    if (t === 12) return ['4','5','6'].includes(dKey) ? 'S' : 'H';
+    if (t === 11) return 'D';
+    if (t === 10) return ['10','A'].includes(dKey) ? 'H' : 'D';
+    if (t === 9)  return ['3','4','5','6'].includes(dKey) ? 'D' : 'H';
+    return 'H';
+  }
+
+  function strategyToButton(action, canDoubleNow) {
+    if (action === 'D')  return canDoubleNow ? 'double' : 'hit';
+    if (action === 'Ds') return canDoubleNow ? 'double' : 'stand';
+    if (action === 'P')  return 'split';
+    if (action === 'H')  return 'hit';
+    if (action === 'S')  return 'stand';
+    return 'hit';
+  }
+
+  function strategyLabel(action) {
+    return ({ H: 'Hit', S: 'Stand', D: 'Double', Ds: 'Double', P: 'Split' })[action] || 'Hit';
+  }
+
+  function refreshHint() {
+    ['hitBtn','standBtn','doubleBtn','splitBtn'].forEach(id => {
+      document.getElementById(id).classList.remove('hint');
+    });
+    const hintEl = document.getElementById('strategyHint');
+    hintEl.classList.remove('show');
+
+    if (currentMode !== 1 || phase !== 'player') return;
+    const hand = playerHands[activeHandIndex];
+    if (!hand || hand.cards.length === 0 || dealerHand.length === 0) return;
+    const canDoubleNow = hand.cards.length === 2;
+    const canSplitNow = canSplit(hand);
+    const sugg = basicStrategy(hand.cards, dealerHand[0], canDoubleNow, canSplitNow);
+    const buttonId = strategyToButton(sugg, canDoubleNow);
+    const btnElId = { hit: 'hitBtn', stand: 'standBtn', double: 'doubleBtn', split: 'splitBtn' }[buttonId];
+    if (btnElId && !document.getElementById(btnElId).disabled) {
+      document.getElementById(btnElId).classList.add('hint');
+    }
+    hintEl.innerHTML = `<span class="label">Suggested:</span> ${strategyLabel(sugg)}`;
+    hintEl.classList.add('show');
+  }
+
+  function evaluateMove(actionTaken) {
+    if (currentMode !== 1) return;
+    const hand = playerHands[activeHandIndex];
+    if (!hand || hand.cards.length === 0 || dealerHand.length === 0) return;
+    const canDoubleNow = hand.cards.length === 2;
+    const canSplitNow = canSplit(hand);
+    const sugg = basicStrategy(hand.cards, dealerHand[0], canDoubleNow, canSplitNow);
+    const optimalButton = strategyToButton(sugg, canDoubleNow);
+    const fb = document.getElementById('strategyFeedback');
+    if (actionTaken === optimalButton) {
+      fb.textContent = '✓ Optimal';
+      fb.className = 'strategy-feedback show good';
+    } else {
+      fb.textContent = `Optimal: ${strategyLabel(sugg)}`;
+      fb.className = 'strategy-feedback show miss';
+    }
+    setTimeout(() => { fb.className = 'strategy-feedback'; }, 2000);
+  }
+
   // ---------- chip rack disabled state ----------
   function setChipRackDisabled(disabled) {
     chipRackM2.classList.toggle('disabled', disabled);
@@ -290,14 +448,15 @@
 
     if (phase !== 'player') {
       hitBtn.disabled = standBtn.disabled = doubleBtn.disabled = splitBtn.disabled = true;
-      return;
+    } else {
+      const hand = playerHands[activeHandIndex];
+      hitBtn.disabled = false;
+      standBtn.disabled = false;
+      const cantAfford = currentMode === 3 && hand && hand.bet > bankroll;
+      doubleBtn.disabled = !(hand && hand.cards.length === 2) || cantAfford;
+      splitBtn.disabled = !canSplit(hand) || cantAfford;
     }
-    const hand = playerHands[activeHandIndex];
-    hitBtn.disabled = false;
-    standBtn.disabled = false;
-    const cantAfford = currentMode === 3 && hand && hand.bet > bankroll;
-    doubleBtn.disabled = !(hand && hand.cards.length === 2) || cantAfford;
-    splitBtn.disabled = !canSplit(hand) || cantAfford;
+    refreshHint();
   }
 
   // ---------- message + hand indicator ----------
@@ -399,6 +558,7 @@
   // ---------- player actions ----------
   async function playerHit() {
     if (phase !== 'player') return;
+    evaluateMove('hit');
     const hand = playerHands[activeHandIndex];
     const c = drawCard();
     hand.cards.push(c);
@@ -414,6 +574,7 @@
 
   async function playerStand() {
     if (phase !== 'player') return;
+    evaluateMove('stand');
     playerHands[activeHandIndex].stood = true;
     await advanceHand();
   }
@@ -423,6 +584,8 @@
     const hand = playerHands[activeHandIndex];
     if (hand.cards.length !== 2) return;
     if (currentMode === 3 && hand.bet > bankroll) return;
+
+    evaluateMove('double');
 
     if (currentMode === 3) {
       bankroll -= hand.bet;
@@ -448,6 +611,8 @@
     const hand = playerHands[activeHandIndex];
     if (!canSplit(hand)) return;
     if (currentMode === 3 && hand.bet > bankroll) return;
+
+    evaluateMove('split');
 
     if (currentMode === 3) {
       bankroll -= hand.bet;
@@ -595,6 +760,7 @@
     hideMessage();
     hideHandIndicator();
     hideBankruptModal();
+    hideTutorial();
     setPhase('idle');
     updateDeckCount();
   }
@@ -623,6 +789,7 @@
     chipRackM3.classList.toggle('hidden', mode !== 3);
     home.classList.add('hidden');
     game.classList.remove('hidden');
+    if (mode === 1) showTutorial();
   }
 
   // ---------- wiring ----------
@@ -681,6 +848,20 @@
     backBtn.click();
   });
 
+  document.getElementById('tutorialSkip').addEventListener('click', hideTutorial);
+  document.getElementById('tutorialNext').addEventListener('click', () => {
+    if (tutorialIndex < TUTORIAL_LESSONS.length - 1) {
+      tutorialIndex++;
+      renderTutorial();
+    } else {
+      hideTutorial();
+    }
+  });
+
+  document.getElementById('infoBtn').addEventListener('click', () => {
+    if (currentMode === 1) showTutorial();
+  });
+
   // ---------- init + deep-link ----------
   shoe = buildShoe();
   initialShoeSize = shoe.length;
@@ -694,6 +875,7 @@
     const actions = parts.slice(2);
     if (actions.length) {
       setTimeout(async () => {
+        hideTutorial();
         for (const action of actions) {
           const betMatch = action.match(/^bet(\d+)$/);
           if (betMatch) {

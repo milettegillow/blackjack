@@ -675,6 +675,7 @@ body::before {
 
 /* action bar */
 .action-bar {
+  position: relative;
   padding: 8px 0 12px;
 }
 
@@ -1031,4 +1032,188 @@ body::before {
 @keyframes bankruptCardIn {
   from { opacity: 0; transform: scale(0.94) translateY(8px); }
   to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ============ TUTORIAL MODAL (Mode 1) ============ */
+.tutorial-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.tutorial-modal.hidden { display: none; }
+
+.tutorial-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.tutorial-card {
+  position: relative;
+  background: linear-gradient(180deg, rgba(13, 92, 61, 0.85), rgba(7, 61, 40, 0.85));
+  border: 1px solid var(--gold);
+  border-radius: 6px;
+  padding: 28px 26px 24px;
+  max-width: 360px;
+  width: 100%;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.6),
+    0 0 40px rgba(212, 175, 55, 0.15);
+  animation: bankruptCardIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.tutorial-progress {
+  font-family: 'Playfair Display', serif;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  color: var(--gold);
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.tutorial-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.15;
+  text-align: center;
+  margin-bottom: 14px;
+  background: linear-gradient(180deg, #f4d77a 0%, #d4af37 25%, #b8862b 50%, #d4af37 75%, #f4d77a 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+}
+
+.tutorial-body {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-dim);
+  margin-bottom: 22px;
+}
+
+.tutorial-body strong { color: var(--ink); font-weight: 600; }
+.tutorial-body em     { color: var(--gold); font-style: normal; font-weight: 600; }
+
+.tutorial-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.tutorial-skip {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--ink-dim);
+  font-family: 'Lora', Georgia, serif;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 8px 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.tutorial-skip:hover { color: var(--ink); }
+
+.tutorial-next {
+  appearance: none;
+  background: linear-gradient(180deg, #f4d77a, #d4af37, #b8862b);
+  border: none;
+  color: #2a1c00;
+  padding: 11px 26px;
+  font-family: 'Playfair Display', serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  border-radius: 3px;
+  box-shadow:
+    0 4px 14px rgba(212, 175, 55, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition: transform 0.15s ease;
+}
+
+.tutorial-next:hover { transform: translateY(-1px); }
+
+/* ============ COACHED PLAY HINT (Mode 1) ============ */
+.strategy-hint {
+  text-align: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+  height: 18px;
+  margin-bottom: 6px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.strategy-hint.show { opacity: 1; }
+.strategy-hint .label { color: var(--ink-faint); margin-right: 4px; }
+
+.action-btn.hint {
+  box-shadow:
+    0 0 0 1px var(--gold),
+    0 0 18px rgba(212, 175, 55, 0.35);
+  background: linear-gradient(180deg, rgba(212, 175, 55, 0.22), rgba(212, 175, 55, 0.08));
+}
+
+.action-btn.hint::after {
+  content: "\2726"; /* ✦ */
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  font-size: 9px;
+  color: var(--gold);
+}
+
+/* ============ COACHED PLAY FEEDBACK (Mode 1) ============ */
+.strategy-feedback {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 100%;
+  margin-bottom: 10px;
+  font-family: 'Lora', Georgia, serif;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 100px;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 5;
+}
+
+.strategy-feedback.show { animation: strategyFeedbackFloat 2s ease forwards; }
+
+.strategy-feedback.good {
+  color: #6ee7b7;
+  background: rgba(110, 231, 183, 0.1);
+  border: 1px solid rgba(110, 231, 183, 0.3);
+}
+
+.strategy-feedback.miss {
+  color: #fcd34d;
+  background: rgba(252, 211, 77, 0.1);
+  border: 1px solid rgba(252, 211, 77, 0.3);
+}
+
+@keyframes strategyFeedbackFloat {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(4px); }
+  15%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+  80%  { opacity: 1; transform: translateX(-50%) translateY(-2px); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
 }
