@@ -1131,12 +1131,23 @@
     dealerHand = [];
     playerHands = [];
     activeHandIndex = 0;
+    runningCount = 0;
+    pendingBetChoice = null;
+    pendingBetTC = 0;
+    mode2HandsPlayed = 0;
     dealerHandEl.innerHTML = '';
     playerHandEl.innerHTML = '';
     hideMessage();
     hideHandIndicator();
     hideBankruptModal();
     hideTutorial();
+    // clear leftover round-review / bet-review from previous modes
+    const reviewEl = document.getElementById('roundReview');
+    if (reviewEl) {
+      reviewEl.classList.remove('show');
+      reviewEl.innerHTML = '';
+    }
+    roundDecisions = [];
     setPhase('idle');
     updateDeckCount();
   }
@@ -1369,9 +1380,18 @@
   }
 
   async function onMode2ChipClick(betChoice) {
-    if (currentMode !== 2) return;
-    if (phase !== 'idle' && phase !== 'over') return;
-    if (settling) return;
+    if (currentMode !== 2) {
+      console.error('[mode2] chip click ignored: currentMode is', currentMode);
+      return;
+    }
+    if (phase !== 'idle' && phase !== 'over') {
+      console.error('[mode2] chip click ignored: phase is', phase);
+      return;
+    }
+    if (settling) {
+      console.error('[mode2] chip click ignored: settling in progress');
+      return;
+    }
     if (maybeShowQuiz()) return;
     clearBetReview();
     pendingBetChoice = betChoice;
