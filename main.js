@@ -542,6 +542,9 @@
 
   function clearChipSelection() {
     document.querySelectorAll('.mode2-chips .chip').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('.mode2-chips').forEach(r => r.classList.remove('has-selection'));
+    pendingBetChoice = null;
+    updateButtonStates();
   }
 
   // ---------- Hi-Lo count tracking (Mode 2) ----------
@@ -567,7 +570,7 @@
     const tc = runningCount / decksRemaining;
     const rcEl   = document.getElementById('runningCount');
     const tcEl   = document.getElementById('trueCount');
-    const dEl    = document.getElementById('decksLeft');
+    const dEl    = document.getElementById('decksBoxValue');
     const advEl  = document.getElementById('advantage');
     if (rcEl) rcEl.textContent = runningCount >= 0 ? `+${runningCount}` : `${runningCount}`;
     if (tcEl) {
@@ -580,10 +583,10 @@
     if (dEl) dEl.textContent = decksRemaining.toFixed(1);
     if (advEl) {
       advEl.classList.remove('pos', 'strong-pos', 'neg');
-      if (tc >= 2) { advEl.textContent = 'PLAYER'; advEl.classList.add('strong-pos'); }
-      else if (tc >= 1) { advEl.textContent = 'EDGE'; advEl.classList.add('pos'); }
-      else if (tc <= -1) { advEl.textContent = 'HOUSE'; advEl.classList.add('neg'); }
-      else { advEl.textContent = 'NEUTRAL'; }
+      if (tc >= 2) { advEl.textContent = 'Player edge'; advEl.classList.add('strong-pos'); }
+      else if (tc >= 1) { advEl.textContent = 'Edge'; advEl.classList.add('pos'); }
+      else if (tc <= -1) { advEl.textContent = 'House edge'; advEl.classList.add('neg'); }
+      else { advEl.textContent = 'Neutral'; }
     }
   }
 
@@ -791,7 +794,8 @@
   function updateButtonStates() {
     const dealAllowed = (phase === 'idle' || phase === 'over');
     const brokeInMode3 = currentMode === 3 && bankroll <= 0 && currentBet === 0;
-    dealBtn.disabled = !dealAllowed || settling || brokeInMode3;
+    const noBetInMode2 = currentMode === 2 && !pendingBetChoice;
+    dealBtn.disabled = !dealAllowed || settling || brokeInMode3 || noBetInMode2;
 
     if (phase !== 'player') {
       hitBtn.disabled = standBtn.disabled = doubleBtn.disabled = splitBtn.disabled = true;
@@ -1315,23 +1319,31 @@
       resetGameState();
       clearChipSelection();
       pendingBetChoice = null;
+      countRevealed = false;
+      const ccb = document.getElementById('checkCountBtn');
+      if (ccb) {
+        ccb.textContent = 'Check my count';
+        ccb.classList.remove('revealed');
+      }
     });
   });
 
-  // ---------- Mode 2: Check My Count (3s reveal) ----------
-  let checkRevealTimer = null;
+  // ---------- Mode 2: Check My Count (toggle) ----------
+  let countRevealed = false;
+
   document.getElementById('checkCountBtn').addEventListener('click', () => {
     const panel = document.getElementById('countPanel');
     const btn = document.getElementById('checkCountBtn');
-    panel.classList.remove('hidden-mode');
-    btn.classList.add('revealed');
-    if (checkRevealTimer) clearTimeout(checkRevealTimer);
-    checkRevealTimer = setTimeout(() => {
-      if (countSubMode === 'hidden') {
-        panel.classList.add('hidden-mode');
-        btn.classList.remove('revealed');
-      }
-    }, 3000);
+    countRevealed = !countRevealed;
+    if (countRevealed) {
+      panel.classList.remove('hidden-mode');
+      btn.textContent = 'Hide my count';
+      btn.classList.add('revealed');
+    } else {
+      panel.classList.add('hidden-mode');
+      btn.textContent = 'Check my count';
+      btn.classList.remove('revealed');
+    }
   });
 
   // ---------- Mode 2: bet review ----------
@@ -1391,10 +1403,12 @@
   function onMode2ChipClick(betChoice) {
     if (currentMode !== 2) return;
     if (phase !== 'idle' && phase !== 'over') return;
+    document.querySelectorAll('.mode2-chips .chip').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('.mode2-chips').forEach(r => r.classList.add('has-selection'));
     pendingBetChoice = betChoice;
-    clearChipSelection();
     const clicked = document.querySelector(`.mode2-chips .chip[data-bet="${betChoice}"]`);
     if (clicked) clicked.classList.add('selected');
+    updateButtonStates();
   }
 
   async function onDealClick() {

@@ -474,12 +474,10 @@ body::before {
 }
 
 .advantage {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Lora', Georgia, serif;
+  font-style: italic;
   font-size: 10px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
   color: var(--gold);
-  text-align: center;
 }
 
 .advantage.pos        { color: #6ee7b7; }
@@ -523,6 +521,32 @@ body::before {
   font-size: 9px;
   letter-spacing: 0.04em;
   color: var(--ink-dim);
+}
+
+.decks-box {
+  margin-top: 6px;
+  padding: 4px 10px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 4px;
+  text-align: center;
+  min-width: 50px;
+}
+
+.decks-box-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gold);
+  line-height: 1.1;
+}
+
+.decks-box-label {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 9px;
+  color: var(--ink-faint);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
 }
 
 /* table */
@@ -998,8 +1022,27 @@ body::before {
 .chip:active { transform: translateY(0); }
 
 .chip.selected {
-  box-shadow: 0 0 0 2px var(--gold), 0 0 16px rgba(212, 175, 55, 0.5);
-  transform: translateY(-2px);
+  transform: translateY(-12px) scale(1.18);
+  box-shadow:
+    0 0 0 3px var(--gold),
+    0 12px 26px rgba(0, 0, 0, 0.55),
+    0 0 32px rgba(212, 175, 55, 0.6);
+  z-index: 5;
+}
+
+.mode2-chips.has-selection .chip:not(.selected) {
+  opacity: 0.38;
+  filter: saturate(0.5);
+}
+
+.deal-btn:disabled,
+.deal-btn[disabled] {
+  opacity: 0.32;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+  box-shadow: none;
+  pointer-events: none;
+  transform: none;
 }
 
 .chip-skip   { --chip-color: #6b6b6b; }
